@@ -49,9 +49,13 @@ int comp_con(vector< vector< pair<int,int> > > &grafo,int edges){
 
 
 int main(){
-	int v1,v2,costo,beneficio,edges;
+	int v1,v2,costo,beneficio,edges,edg1,edg2;
+
 	pair<int,int> aux,aux1,aux2;
-	scanf("%d",&edges);
+	scanf("number of vertices :  %d \n",&edges);
+	scanf("number of required edges %d \n",&edg1);
+	printf("%d\n", edges);
+	printf("%d\n", edg1);
 	memset(visitados,0,sizeof(visitados));
 	memset(r_edges,0,sizeof(r_edges));
 	memset(p_edges,0,sizeof(p_edges));
@@ -68,7 +72,8 @@ int main(){
 		grafoR[i].resize(edges+1);
 	}
 	
-	while(scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio)!= EOF){
+	while(edg1--){
+		scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio);
 		aux = mp(v1,v2);
 		aux1 = mp(v2,v1);
 		aux2 = mp(costo,beneficio);
@@ -94,6 +99,33 @@ int main(){
 		}
 	}
 
+	scanf("\nnumber of non required edges  %d \n",&edg2);
+	while(edg2--){
+		scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio);
+		aux = mp(v1,v2);
+		aux1 = mp(v2,v1);
+		aux2 = mp(costo,beneficio);
+		grafo[v1][v2] = aux2;
+		grafo[v2][v1] = aux2;
+		lados.push_back(mp(aux,aux2));
+		lados.push_back(mp(aux1,aux2));
+		if(beneficio >= 2*costo){
+			r_edges[v1][v2] = 1;
+			r_edges[v2][v1] = 1;
+			es_r[v1] = 1;
+			es_r[v2] = 1;
+			grafoR[v1][v2] = aux2;
+			grafoR[v2][v1] = aux2;
+		}
+		else if(beneficio < costo){
+			p_edges[v1][v2] = 1;
+			p_edges[v2][v1] = 1;
+		}
+		else{
+			q_edges[v1][v2] = 1;
+			q_edges[v2][v1] = 1;
+		}
+	}
 	for(int i = 1; i <= edges; i++){
 		for(int j = 1; j <= edges; j++){
 			if(es_r[j] && !es_r[i]){
