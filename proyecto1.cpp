@@ -126,6 +126,8 @@ int main(){
 			q_edges[v2][v1] = 1;
 		}
 	}
+	
+	/*
 	for(int i = 1; i <= edges; i++){
 		for(int j = 1; j <= edges; j++){
 			if(es_r[j] && !es_r[i]){
@@ -133,6 +135,7 @@ int main(){
 			}
 		}
 	}
+	*/
 
 	// Aca imprimo el grafoR
 	for(int i = 0; i <= edges; i++){
