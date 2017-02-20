@@ -26,23 +26,25 @@ int cc[105];
 int cuenta[105];
 int es_r[105];
 
-void dfs(int edge, int id){
+void dfs(vector< vector< pair<int,int> > > &grafo,int edge, int id){
+	cc[edge] = id;
 	for(int i = 0; i < grafo[edge].size(); i++){
 		if(grafo[edge][i].ff != 0){
 			if(cc[i] == 0){
-				dfs(i,id);
+				dfs(grafo,i,id);
 			}
 		}
 	}
 }
 
-void comp_con(int edges){
+int comp_con(vector< vector< pair<int,int> > > &grafo,int edges){
 	int id = 1;
 	for(int i = 1; i <= edges; i++){
 		if(cc[i] == 0){
-			dfs(i,id++);
+			dfs(grafo,i,id++);
 		}
 	}
+	return id;
 }
 
 
@@ -57,12 +59,15 @@ int main(){
 	memset(cc,0,sizeof(cc));
 	memset(cuenta,0,sizeof(cuenta));
 	memset(es_r,0,sizeof(es_r));
+	
 	grafo.resize(edges+1);
 	grafoR.resize(edges+1);
+	
 	for(int i = 0; i <= edges; i++){
 		grafo[i].resize(edges+1);
 		grafoR[i].resize(edges+1);
 	}
+	
 	while(scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio)!= EOF){
 		aux = mp(v1,v2);
 		aux1 = mp(v2,v1);
@@ -96,4 +101,26 @@ int main(){
 			}
 		}
 	}
+
+	// Aca imprimo el grafoR
+	for(int i = 0; i <= edges; i++){
+		for(int j = 0; j<= edges; j++){
+			if(grafoR[i][j].ff!=0){
+				//printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
+			}
+		}
+	}
+
+	//Probando las componentes conexas de R
+	int ids = comp_con(grafoR,edges);
+
+	for(int i = 0; i <= edges; i++){
+		for(int j = 0; j <= edges; j++){
+			if(grafoR[i][j].ss != 0){
+				printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
+				printf("Su id es: %d\n",cc[i]);
+			}
+		}
+	}	
+
 }
