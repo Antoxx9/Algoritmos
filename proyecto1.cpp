@@ -23,30 +23,59 @@ int r_edges[105][105];
 int p_edges[105][105];
 int q_edges[105][105];
 int cc[105];
-int cuenta[105];
+int cuenta[105][105];
 int es_r[105];
 
-void dfs(vector< vector< pair<int,int> > > &grafo,int edge, int id){
+// dfs con un booleano para eliminar componentes conexas falsas.
+int dfs(vector< vector< pair<int,int> > > &grafo,int edge, int id){
+	int falso = 1;
 	cc[edge] = id;
 	for(int i = 0; i < grafo[edge].size(); i++){
 		if(grafo[edge][i].ff != 0){
+			falso = 0;
 			if(cc[i] == 0){
 				dfs(grafo,i,id);
 			}
 		}
 	}
+	if(falso){
+		cc[edge] = 0;
+		return 0;
+	}
+	return 1;
 }
 
+// Hace Dfs desde cada nodo de el grafo que aun no haya sido visitado.
 int comp_con(vector< vector< pair<int,int> > > &grafo,int edges){
 	int id = 1;
 	for(int i = 1; i <= edges; i++){
 		if(cc[i] == 0){
-			dfs(grafo,i,id++);
+			if(dfs(grafo,i,id)){
+				id++;
+			}
 		}
 	}
 	return id;
 }
 
+// Recorre la componente con el id especificado y suma sus beneficios.
+int recorrer_comp(vector< vector< pair<int,int> > > &grafo, int id, int edges){
+	int suma = 0;
+	for(int i = 0; i <= edges; i++){
+		for(int j = i+1; j <= edges; j++){
+			if(grafo[i][j].ff != 0){
+				if(cc[i] == cc[j] && cc[i] == id){
+					if(cuenta[i][j] < 2){
+						cuenta[i][j]++;
+						cuenta[j][i]++;
+						suma += (grafo[i][j].ss-grafo[i][j].ff);
+					}
+				}
+			}
+		}
+	}
+	return suma;	
+}
 
 int main(){
 	int v1,v2,costo,beneficio,edges,edg1,edg2;
@@ -140,20 +169,21 @@ int main(){
 	// Aca imprimo el grafoR
 	for(int i = 0; i <= edges; i++){
 		for(int j = 0; j<= edges; j++){
-			if(grafoR[i][j].ff!=0){
-				//printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
+			if(grafoR[i][j].ff!=0 || ((i == 1 || j == 1) && grafoR[i][j].ff!=0)){
+				printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
 			}
 		}
 	}
 
 	//Probando las componentes conexas de R
 	int ids = comp_con(grafoR,edges);
-
+	int sumas = recorrer_comp(grafoR,3,edges);
+	printf("%d\n",sumas);
 	for(int i = 0; i <= edges; i++){
-		for(int j = 0; j <= edges; j++){
-			if(grafoR[i][j].ss != 0){
+		for(int j = i+1; j <= edges; j++){
+			if(grafoR[i][j].ff != 0){
 				printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
-				printf("Su id es: %d\n",cc[i]);
+				printf("Su id es: %d %d\n",cc[i],cc[j]);
 			}
 		}
 	}	
