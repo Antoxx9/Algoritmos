@@ -256,7 +256,7 @@ int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int ed
 	
 	int id = 0;
 	for(int i = 1; i <= edges; i++){
-		if(cc[i] == -1){
+		if(cc[i] == -1 && grafo[i][1].ff != -1){
 			if(dfs(grafo,cc,i,id)){
 				id++;
 			}
@@ -406,7 +406,7 @@ int main(){
 
 	//Probando las componentes conexas de R
 	ids = comp_con(grafoR,cc,edges);
-
+	printf("Son %d\n",ids);
 	grafoCc.resize(ids);
 
 	llenar_componentes(grafoCc,cc);
