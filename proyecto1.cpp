@@ -277,26 +277,40 @@ int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int ed
 
 vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
 	vector<int> res,st;
+	vector<int> visitado;
+	visitado.resize(grafo.size()+1);
 	bool vacio;
 	st.push_back(1);
 	while(!st.empty()){
 		int v = st.back();
+		//printf("El nodo revisado es: %d \n", v);
 		vacio = true;
 		for(int i = 0; i < grafo[v].size(); i++){
 			if(grafo[v][i].ff != -1){
+				//printf("El nodo %d tiene de fcking vecino 1ero a: %d \n",v,i);
 				vacio = false;
 				break;
 			}
 		}
 
 		if(grafo[v].empty() || vacio){
-			res.push_back(v);
+			//printf("El nodo %d esta vacio\n",v);
+			for(int i = 0; i < grafo.size(); i++){
+				grafo[i][v] = mp(-1,-1);
+			}
+			visitado[1] = 0;
+			if(!visitado[v]){
+				res.push_back(v);
+				visitado[v] = 1;
+			}
 			st.pop_back();
 		}
 		else{
+			//printf("El nodo no esta vacio\n");
 			int primero;
 			for(int i = 0; i < grafo[v].size(); i++){
 				if(grafo[v][i].ff != -1){
+					//printf("El nodo %d tiene de fcking vecino a: %d \n",v,i);
 					grafo[v][i] = mp(-1,-1);
 					grafo[i][v] = mp(-1,-1);
 					primero = i;
@@ -470,15 +484,35 @@ int main(){
 		}
 	}
 	if(!es_par(grafoR)){
+		
 		gen_grafo_impar(grafoR,grafoI,floyd);
 		perfect_matching(grafoI,lados);
 		for(int i = 0; i < lados.size(); i++){
-			grafoR[lados[i].ss.ff][lados[i].ss.ss] = mp(lados[i].ff,-1);
-			grafoR[lados[i].ss.ss][lados[i].ss.ff] = mp(lados[i].ff,-1);
+			//if(grafoR[lados[i].ss.ff][lados[i].ss.ss].ff == -1){
+				grafoR[lados[i].ss.ff][lados[i].ss.ss] = mp(lados[i].ff,-1);
+				grafoR[lados[i].ss.ss][lados[i].ss.ff] = mp(lados[i].ff,-1);
+			//}
 		}
 	}
 	ciclo = eulerian_path(grafoR);
-	vector<int> ciclo_aux; 
+	vector<int> reconst;
+	vector<int> ciclo_aux;
+	printf("El ciclo antes del Artificio: \n");
+	for(int i = 0; i < ciclo.size(); i++){
+		printf("%d ",ciclo[i]);
+	}
+	printf("\n");
+	if(ciclo[ciclo.size()-1] != 1){
+		reconst = reconstruir(next, ciclo[ciclo.size()], 1);
+		for(int i = 1; i < reconst.size(); i++){
+			ciclo.push_back(reconst[i]);
+		}
+	}
+	printf("El ciclo luego del Artificio: \n");
+	for(int i = 0; i < ciclo.size(); i++){
+		printf("%d ",ciclo[i]);
+	}
+	printf("\n");
 	ciclo_aux.push_back(ciclo[0]);
 	for(int i = 0; i < ciclo.size()-1; i++){
 		if (grafo[ciclo[i]][ciclo[i+1]].ff != floyd[ciclo[i]][ciclo[i+1]]) {
