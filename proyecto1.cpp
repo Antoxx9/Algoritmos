@@ -210,14 +210,13 @@ void llenar_componentes(vector< vector< int > > &grafo, vector< int > &cc){
 
 // Llena con el lado de menor costo entre cada componente conexa, diciendo de donde a donde va.
 void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, vector< pair< int,pair<int,int> > > &lados){
-	
+	lados.clear();
 	int min;
 	pair<int,int> lado;
 	for(int k = 0; k < grafoCc.size(); k++){
 		for(int i = k+1; i < grafoCc.size(); i++){
 			min = 1000;
 			for(int l = 0; l < grafoCc[k].size(); l++){
-
 				for(int j = 0; j < grafoCc[i].size(); j++){
 					if(floyd[grafoCc[k][l]][grafoCc[i][j]] < min){
 						min = floyd[grafoCc[k][l]][grafoCc[i][j]];
@@ -254,9 +253,17 @@ int dfs(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edge, i
 // Hace Dfs desde cada nodo de el grafo que aun no haya sido visitado.
 int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edges){
 	
+	bool puede = false;
 	int id = 0;
 	for(int i = 1; i <= edges; i++){
-		if(cc[i] == -1 && grafo[i][1].ff != -1){
+		puede = false;
+		for(int j = 1; j < grafo[i].size(); j++){
+			if(grafo[i][j].ff != -1){
+				puede = true;
+				break;
+			}
+		}
+		if(cc[i] == -1 && puede){
 			if(dfs(grafo,cc,i,id)){
 				id++;
 			}
@@ -264,6 +271,47 @@ int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int ed
 	}
 	return id;
 
+}
+
+vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
+	vector<int> res,st;
+	bool vacio;
+	st.push_back(1);
+	while(!st.empty()){
+		int v = st.back();
+		vacio = true;
+		for(int i = 0; i < grafo[v].size(); i++){
+			if(grafo[v][i].ff != -1){
+				vacio = false;
+				break;
+			}
+		}
+
+		if(grafo[v].empty() || vacio){
+			res.push_back(v);
+			st.pop_back();
+		}
+		else{
+			int primero;
+			for(int i = 0; i < grafo[v].size(); i++){
+				if(grafo[v][i].ff != -1){
+					grafo[v][i] = mp(-1,-1);
+					grafo[i][v] = mp(-1,-1);
+					primero = i;
+					break;
+				}
+			}
+			st.push_back(primero);
+			//grafo[v].pop_back();
+		}
+	}
+	reverse(res.begin(),res.end());
+	printf("El ciclo de porqueria es =D : \n");
+	for(int i = 0; i < res.size(); i++){
+		printf("%d ",res[i]);
+	}
+	printf("\n");
+	return res;
 }
 
 /*
@@ -394,6 +442,7 @@ int main(){
 		}
 	}
 
+	/*
 	// Aca imprimo el grafoR
 	printf("El Grafo R es: \n");
 	for(int i = 0; i <= edges; i++){
@@ -403,55 +452,20 @@ int main(){
 			}
 		}
 	}
-
+	*/
 	//Probando las componentes conexas de R
 	ids = comp_con(grafoR,cc,edges);
-	printf("Son %d\n",ids);
-	grafoCc.resize(ids);
-
-	llenar_componentes(grafoCc,cc);
-
-	for(int i = 0; i < grafoCc.size(); i++){
-		printf("En la componente %d estan\n",i);
-		for(int j = 0; j < grafoCc[i].size(); j++){
-			printf("%d ",grafoCc[i][j]);
-		}
-		printf("\n");
-	}
-
-	floyd_warshall(floyd,next,edges);
-
-	lados.clear();
-	llenar_lados(floyd,grafoCc,lados);
-	
-	printf("Lados de llenar lados de el vs de todos: \n");
-	for(int i = 0; i < lados.size(); i++){
-		printf("%d %d %d\n",lados[i].ff, lados[i].ss.ff, lados[i].ss.ss);
-	}
-	printf("\n");
-
-	lados = kruskal(lados,cc,ids);
-
-	printf("Aca los del kruskal: \n");
-	for(int i = 0; i < lados.size(); i++){
-		printf("%d %d %d\n",lados[i].ff, lados[i].ss.ff, lados[i].ss.ss);
-	}
-	printf("\n");
-	for(int i = 0; i < lados.size(); i++){
-		grafoR[lados[i].ss.ff][lados[i].ss.ss] = grafo[lados[i].ss.ff][lados[i].ss.ss];
-		grafoR[lados[i].ss.ss][lados[i].ss.ff] = grafo[lados[i].ss.ss][lados[i].ss.ff];
-	}
-
-
-	printf("El Grafo R es: \n");
-	for(int i = 0; i <= edges; i++){
-		for(int j = i+1; j<= edges; j++){
-			if(grafoR[i][j].ff!=-1 || ((i == 1 || j == 1) && grafoR[i][j].ff!=-1)){
-				printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
-			}
+	if(ids != 1){
+		grafoCc.resize(ids);
+		llenar_componentes(grafoCc,cc);
+		floyd_warshall(floyd,next,edges);
+		llenar_lados(floyd,grafoCc,lados);
+		lados = kruskal(lados,cc,ids);
+		for(int i = 0; i < lados.size(); i++){
+			grafoR[lados[i].ss.ff][lados[i].ss.ss] = grafo[lados[i].ss.ff][lados[i].ss.ss];
+			grafoR[lados[i].ss.ss][lados[i].ss.ff] = grafo[lados[i].ss.ss][lados[i].ss.ff];
 		}
 	}
-
 	if(!es_par(grafoR)){
 		gen_grafo_impar(grafoR,grafoI,floyd);
 		perfect_matching(grafoI,lados);
@@ -460,6 +474,53 @@ int main(){
 			grafoR[lados[i].ss.ss][lados[i].ss.ff] = mp(lados[i].ff,-1);
 		}
 	}
+	eulerian_path(grafoR);
+
+	//printf("Son %d\n",ids);
+
+
+	/*
+	for(int i = 0; i < grafoCc.size(); i++){
+		printf("En la componente %d estan\n",i);
+		for(int j = 0; j < grafoCc[i].size(); j++){
+			printf("%d ",grafoCc[i][j]);
+		}
+		printf("\n");
+	}
+	*/
+
+
+	
+	/*
+	printf("Lados de llenar lados de el vs de todos: \n");
+	for(int i = 0; i < lados.size(); i++){
+		printf("%d %d %d\n",lados[i].ff, lados[i].ss.ff, lados[i].ss.ss);
+	}
+	printf("\n");
+	*/
+
+	
+	/*
+	printf("Aca los del kruskal: \n");
+	for(int i = 0; i < lados.size(); i++){
+		printf("%d %d %d\n",lados[i].ff, lados[i].ss.ff, lados[i].ss.ss);
+	}
+	printf("\n");
+	*/
+
+
+	/*
+	printf("El Grafo R es: \n");
+	for(int i = 0; i <= edges; i++){
+		for(int j = i+1; j<= edges; j++){
+			if(grafoR[i][j].ff!=-1 || ((i == 1 || j == 1) && grafoR[i][j].ff!=-1)){
+				printf("%d %d %d %d\n",i,j,grafoR[i][j].ff,grafoR[i][j].ss);
+			}
+		}
+	}
+	*/
+
+	
 
 	printf("El Grafo R es: \n");
 	for(int i = 0; i <= edges; i++){
@@ -469,7 +530,6 @@ int main(){
 			}
 		}
 	}
-
 	/*
 	printf("Las componentes son: \n");
 	for(int i = 0; i <= edges; i++){
