@@ -325,7 +325,7 @@ vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
 	return res;
 }
 
-int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo) {
+int calcular_beneficio(vector<int> ciclo, vector< vector< pair<int,int> > > grafo) {
 	int beneficio = 0;
 	for(int i = 0; i < ciclo.size()-1; i++) {
 		beneficio += (grafo[ciclo[i]][ciclo[i+1]].ss - grafo[ciclo[i]][ciclo[i+1]].ff);
@@ -335,32 +335,75 @@ int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo
 	return beneficio;
 }
 /*
-void elim_euleriana(vector< vector<int> > &grafo){
-	for (int i = 0; i < grafo.size(); i++) {
-		for (int j = i; j < grafo.size(); j++) {
-			// Eliminacion euleriana de lados duplicados.
-			if (grafo[i][j].ff != -1 && grafo[j][i].ff != -1) {
-				grafo_elim = grafo;
-				grafo_elim[j][i] = (grafo_elim[i][j] = 0);
-				if (comp_con(grafo_elim,) != 1 && es_par(grafo_elim)) {
-					ciclo_euleriano(grafo_elim);
+void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo){
+	int edges, beneficio_sol;
+	vector< vector< pair<int,int> > > grafo_sol;
+	vector< vector< pair<int,int> > > grafo_aux;
+	vector< int > cc;
+	
+	beneficio_sol = calcular_beneficio(ciclo, grafo);
+	// Creacion del grafo con los lados del ciclo optimo.
+	edges = grafo.size();
+	grafo_sol.resize(edges);
+	for(int i = 0; i < edges; i++){
+		grafo_sol[i].resize(edges);
+	}
+	for(int i = 0; i < edges; i++){
+		for(int j = 0;j <= edges; j++){
+			grafo_sol[i][j] = mp(-1,-1);
+		}
+	}
+	for (int i = 0; i < edges - 1; i++) {
+		grafo_sol[ciclo[i]][ciclo[i+1]] = grafo[ciclo[i]][ciclo[i+1]];
+	}
+
+	printf("%d\n", edges);
+	printf("El Grafo Solucion es: \n");
+	for(int i = 0; i < edges; i++){
+		for(int j = 0; j< edges; j++){
+			printf("(%d,%d) ", grafo_sol[i][j].ff, grafo_sol[i][j].ss);
+		}
+		printf("\n");
+	}
+	printf("\n");
+
+	// Eliminacion euleriana de lados duplicados.
+	for (int i = 0; i < edges; i++) {
+		for (int j = i; j < edges; j++) {
+			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
+				printf("[%d][%d]\n", i,j);
+				grafo_aux = grafo_sol;
+				grafo_aux[j][i].ff = (grafo_aux[i][j].ff = -1);
+				grafo_aux[j][i].ss = (grafo_aux[i][j].ss = -1);
+
+				printf("El Grafo Auxiliar es: \n");
+				for(int i = 0; i < edges; i++){
+					for(int j = 0; j< edges; j++){
+						printf("(%d,%d) ", grafo_aux[i][j].ff, grafo_aux[i][j].ss);
+					}
+					printf("\n");
+				}
+				printf("\n");
+
+				if (comp_con(grafo_aux,cc,edges-1) != 1) {
+					vector <int> ciclo_aux = eulerian_path(grafo_aux);
+					int beneficio_n = calcular_beneficio(ciclo_aux, grafo);
+					if (beneficio_n > beneficio_sol) {
+						grafo_sol = grafo_aux;
+						ciclo = ciclo_aux;
+					}
 				}
 			}
 		}
 	}
 
+	// Eliminacion euleriana de componentes conexas.
 	for (int i = 0; i < grafo.size(); i++) {
 		for (int j = i; j < grafo.size(); j++) {
-			// Eliminacion euleriana de lados duplicados.
-			// Eliminacion euleriana de componentes conexas.
-			else {
-
-			}
 		}
 	}
 }
 */
-
 int main(){
 	int v1,v2,costo,beneficio,edges,edg1,edg2,ids;
 	pair<int,int> aux,aux1,aux2;
@@ -497,22 +540,27 @@ int main(){
 	ciclo = eulerian_path(grafoR);
 	vector<int> reconst;
 	vector<int> ciclo_aux;
+	/*
 	printf("El ciclo antes del Artificio: \n");
 	for(int i = 0; i < ciclo.size(); i++){
 		printf("%d ",ciclo[i]);
 	}
 	printf("\n");
-	if(ciclo[ciclo.size()-1] != 1){
-		reconst = reconstruir(next, ciclo[ciclo.size()], 1);
-		for(int i = 1; i < reconst.size(); i++){
-			ciclo.push_back(reconst[i]);
-		}
-	}
+
 	printf("El ciclo luego del Artificio: \n");
 	for(int i = 0; i < ciclo.size(); i++){
 		printf("%d ",ciclo[i]);
 	}
 	printf("\n");
+	*/
+	//printf("%d\n", ciclo[ciclo.size()-1]);
+	//printf("%d\n", ciclo[ciclo.size()]);
+	if(ciclo[ciclo.size()-1] != 1){
+		reconst = reconstruir(next, ciclo[ciclo.size()-1], 1);
+		for(int i = 1; i < reconst.size(); i++){
+			ciclo.push_back(reconst[i]);
+		}
+	}
 	ciclo_aux.push_back(ciclo[0]);
 	for(int i = 0; i < ciclo.size()-1; i++){
 		if (grafo[ciclo[i]][ciclo[i+1]].ff != floyd[ciclo[i]][ciclo[i+1]]) {
@@ -525,6 +573,7 @@ int main(){
 			ciclo_aux.push_back(ciclo[i+1]);
 		}
 	}
+	//elim_euleriana(ciclo_aux, grafo);
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
 	printf("%d\n", resultado);
 	for(int i = 0; i < ciclo_aux.size(); i++){
