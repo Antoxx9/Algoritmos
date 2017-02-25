@@ -11,11 +11,12 @@
 #define ss second
 #define ff first
 #define mp make_pair
-#define Inf 1000000
+#define Inf 10000000
 
 using namespace std;
 
 vector< pair< int,pair<int,int> > > lados;
+vector< pair< int,pair<int,int> > > ladosaux;
 vector< vector< pair<int,int> > > grafo;
 vector< vector< pair<int,int> > > grafoR;
 vector< vector< int > > grafoI;
@@ -81,10 +82,10 @@ vector<int> reconstruir(vector< vector<int> > &next, int u, int v){
 
 vector< pair< int, pair<int,int> > > kruskal(vector< pair< int, pair<int,int> > > &lados, vector<int> &cc, int ids){
 	priority_queue<pair< int, pair<int,int> >, vector< pair< int, pair<int,int> > >, greater< pair< int, pair<int,int> > > > cola;
+
 	for(int i = 0; i < lados.size(); i++){
 		cola.push(lados[i]);
 	}
-
 	inituf(ids);
 	vector< pair< int, pair<int,int> > > lados_s;
 	pair<int, pair<int,int> > lado;
@@ -93,11 +94,11 @@ vector< pair< int, pair<int,int> > > kruskal(vector< pair< int, pair<int,int> > 
 		cola.pop();
 		if(parent(cc[lado.ss.ff]) != parent(cc[lado.ss.ss])){
 			joinfind(cc[lado.ss.ff],cc[lado.ss.ss]);
+			//printf("%d %d\n",lado.ss.ff,lado.ss.ss);
 			lados_s.push_back(lado);
 		}
 	}
 	return lados_s;
-
 }
 
 bool es_par(vector<vector<pair<int,int> > > &grafo){
@@ -217,15 +218,19 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 	pair<int,int> lado;
 	for(int k = 0; k < grafoCc.size(); k++){
 		for(int i = k+1; i < grafoCc.size(); i++){
-			min = 1000;
+			min = 1000000;
 			for(int l = 0; l < grafoCc[k].size(); l++){
 				for(int j = 0; j < grafoCc[i].size(); j++){
 					if(floyd[grafoCc[k][l]][grafoCc[i][j]] < min){
 						min = floyd[grafoCc[k][l]][grafoCc[i][j]];
+						//printf("%d\n",min);
+						//printf("%d %d %d \n",k,l,grafoCc[k][l]);
+						//printf("%d %d %d \n",i,j,grafoCc[i][j]);
 						lado = mp(grafoCc[k][l],grafoCc[i][j]);
 					}
 				}
 			}
+		//printf("%d-%d-%d\n",min, lado.ff,lado.ss);
 		lados.push_back(mp(min,lado));
 		}
 	}
@@ -418,6 +423,7 @@ int main(){
 	memset(p_edges,0,sizeof(p_edges));
 	memset(q_edges,0,sizeof(q_edges));
 
+	lados.clear();
 	grafo.resize(edges+1);
 	grafoR.resize(edges+1);
 	grafoI.resize(edges+1);
@@ -513,25 +519,48 @@ int main(){
 		}
 	}
 	*/
+
+
+
 	//Probando las componentes conexas de R
 	ids = comp_con(grafoR,cc,edges);
+	if(cc[1] == -1){
+		cc[1]++;
+		for(int i = 2; i < cc.size(); i++){
+			if(cc[i] != -1){
+				cc[i]++;
+			}
+		}
+		ids++;
+	}
 	floyd_warshall(floyd,next,edges);
+	vector<int> recnst;
 	if(ids != 1){
 		grafoCc.resize(ids);
-		llenar_componentes(grafoCc,cc);
+		llenar_componentes(grafoCc,cc);	
 		llenar_lados(floyd,grafoCc,lados);
 		lados = kruskal(lados,cc,ids);
 		for(int i = 0; i < lados.size(); i++){
-			grafoR[lados[i].ss.ff][lados[i].ss.ss] = grafo[lados[i].ss.ff][lados[i].ss.ss];
-			grafoR[lados[i].ss.ss][lados[i].ss.ff] = grafo[lados[i].ss.ss][lados[i].ss.ff];
+			recnst.clear();
+			recnst = reconstruir(next,lados[i].ss.ff,lados[i].ss.ss);
+			for(int j = 0; j < recnst.size()-1; j++){
+				if(grafo[recnst[j]][recnst[j+1]].ff != -1){
+					grafoR[recnst[j]][recnst[j+1]] = grafo[recnst[j]][recnst[j+1]];
+					grafoR[recnst[j+1]][recnst[j]] = grafo[recnst[j+1]][recnst[j]];
+				}
+				else{
+					grafoR[recnst[j]][recnst[j+1]] = mp(floyd[recnst[j]][recnst[j+1]],-1);
+					grafoR[recnst[j+1]][recnst[j]] = mp(floyd[recnst[j+1]][recnst[j]],-1);
+				}
+			}
 		}
 	}
 	if(!es_par(grafoR)){
-		
 		gen_grafo_impar(grafoR,grafoI,floyd);
 		perfect_matching(grafoI,lados);
 		for(int i = 0; i < lados.size(); i++){
 			//if(grafoR[lados[i].ss.ff][lados[i].ss.ss].ff == -1){
+				// Son estas 2 para quitar el perfect
 				grafoR[lados[i].ss.ff][lados[i].ss.ss] = mp(lados[i].ff,-1);
 				grafoR[lados[i].ss.ss][lados[i].ss.ff] = mp(lados[i].ff,-1);
 			//}
@@ -576,10 +605,20 @@ int main(){
 	//elim_euleriana(ciclo_aux, grafo);
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
 	printf("%d\n", resultado);
-	for(int i = 0; i < ciclo_aux.size(); i++){
-		printf("%d ",ciclo_aux[i]);
+	//for(int i = 0; i < ciclo_aux.size(); i++){
+	//	printf("%d ",ciclo_aux[i]);
+	//}
+	//printf("\n");
+	int fact = 1;
+
+	for(int i = 0; i < ciclo_aux.size()-1; i++){
+		if(grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff == -1){
+			printf("%d %d\n",ciclo_aux[i],ciclo_aux[i+1]);
+			fact = 0;
+			break;
+		}
 	}
-	printf("\n");
+	printf("Factible: %d\n",fact);
 	//printf("Son %d\n",ids);
 
 
