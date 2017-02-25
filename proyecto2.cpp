@@ -487,12 +487,12 @@ int main(){
 			recons.clear();
 			grafoR[lados[i].ss.ff][lados[i].ss.ss] = mp(lados[i].ff,-1);
 			grafoR[lados[i].ss.ss][lados[i].ss.ff] = mp(lados[i].ff,-1);
-			grafoR2[lados[i].ss.ff][lados[i].ss.ss].push_back(mp(lados[i].ff,-1));
-			grafoR2[lados[i].ss.ss][lados[i].ss.ff].push_back(mp(lados[i].ff,-1));
+			//grafoR2[lados[i].ss.ff][lados[i].ss.ss].push_back(mp(lados[i].ff,-1));
+			//grafoR2[lados[i].ss.ss][lados[i].ss.ff].push_back(mp(lados[i].ff,-1));
 			recons = reconstruir(next,lados[i].ss.ff,lados[i].ss.ss);
 			for(int j = 0; j < recons.size()-1; j++){
-				grafoR2[j][j+1].push_back(mp(floyd[j][j+1],-1));
-				grafoR2[j+1][j].push_back(mp(floyd[j+1][j],-1));
+				grafoR2[recons[j]][recons[j+1]].push_back(mp(floyd[j][j+1],-1));
+				grafoR2[recons[j+1]][recons[j]].push_back(mp(floyd[j+1][j],-1));
 			}
 		}
 	}
