@@ -238,7 +238,6 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 
 // dfs con un booleano para eliminar componentes conexas falsas.
 int dfs(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edge, int id){
-	
 	int falso = 0;
 	cc[edge] = id;
 	for(int i = 0; i < grafo[edge].size(); i++){
@@ -259,7 +258,6 @@ int dfs(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edge, i
 
 // Hace Dfs desde cada nodo de el grafo que aun no haya sido visitado.
 int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edges){
-	
 	bool puede = false;
 	int id = 0;
 	for(int i = 1; i <= edges; i++){
@@ -291,7 +289,7 @@ vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
 		//printf("El nodo revisado es: %d \n", v);
 		vacio = true;
 		for(int i = 0; i < grafo[v].size(); i++){
-			if(grafo[v][i].ff != -1){
+			if(v!=i && grafo[v][i].ff != -1){
 				//printf("El nodo %d tiene de fcking vecino 1ero a: %d \n",v,i);
 				vacio = false;
 				break;
@@ -314,7 +312,7 @@ vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
 			//printf("El nodo no esta vacio\n");
 			int primero;
 			for(int i = 0; i < grafo[v].size(); i++){
-				if(grafo[v][i].ff != -1){
+				if(v!=i && grafo[v][i].ff != -1){
 					//printf("El nodo %d tiene de fcking vecino a: %d \n",v,i);
 					grafo[v][i] = mp(-1,-1);
 					grafo[i][v] = mp(-1,-1);
@@ -344,21 +342,28 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo)
 	int edges, beneficio_sol;
 	vector< vector< pair<int,int> > > grafo_sol;
 	vector< vector< pair<int,int> > > grafo_aux;
+	vector< vector< pair<int,int> > > grafo_aux2;
 	vector< int > cc;
-	
+	vector< vector< int > > grafoCc;
 	beneficio_sol = calcular_beneficio(ciclo, grafo);
 	// Creacion del grafo con los lados del ciclo optimo.
 	edges = grafo.size();
+	cc.resize(edges);
 	grafo_sol.resize(edges);
+	grafo_aux2.resize(edges);
+	grafoCc.resize(edges);
 	for(int i = 0; i < edges; i++){
+		cc[i] = -1;
 		grafo_sol[i].resize(edges);
+		grafo_aux2[i].resize(edges);
 	}
 	for(int i = 0; i < edges; i++){
-		for(int j = 0;j <= edges; j++){
+		for(int j = 0;j < edges; j++){
 			grafo_sol[i][j] = mp(-1,-1);
+			grafo_aux2[i][j] = mp(-1,-1);
 		}
 	}
-	for (int i = 0; i < edges - 1; i++) {
+	for (int i = 0; i < ciclo.size()-1; i++) {
 		grafo_sol[ciclo[i]][ciclo[i+1]] = grafo[ciclo[i]][ciclo[i+1]];
 	}
 
@@ -380,6 +385,8 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo)
 				grafo_aux = grafo_sol;
 				grafo_aux[j][i].ff = (grafo_aux[i][j].ff = -1);
 				grafo_aux[j][i].ss = (grafo_aux[i][j].ss = -1);
+				grafo_aux[j][j].ff = (grafo_aux[j][j].ss = 0);
+				grafo_aux[i][i].ff = (grafo_aux[i][i].ss = 0);
 
 				printf("El Grafo Auxiliar es: \n");
 				for(int i = 0; i < edges; i++){
@@ -389,10 +396,14 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo)
 					printf("\n");
 				}
 				printf("\n");
-
-				if (comp_con(grafo_aux,cc,edges-1) != 1) {
+				if (comp_con(grafo_aux,cc,edges-1) == 1) {
 					vector <int> ciclo_aux = eulerian_path(grafo_aux);
+					for(int k = 0; k < ciclo_aux.size(); k++){
+						printf("%d ", ciclo_aux[k]);
+					}
+					printf("\n");
 					int beneficio_n = calcular_beneficio(ciclo_aux, grafo);
+					printf("Los beneficios son: %d %d\n",beneficio_n, beneficio_sol);
 					if (beneficio_n > beneficio_sol) {
 						grafo_sol = grafo_aux;
 						ciclo = ciclo_aux;
@@ -403,10 +414,31 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo)
 	}
 
 	// Eliminacion euleriana de componentes conexas.
-	for (int i = 0; i < grafo.size(); i++) {
-		for (int j = i; j < grafo.size(); j++) {
-		}
+	llenar_componentes(grafoCc,cc);
+	for (int i = 0; i < grafoCc[0].size()-1; i++) {
+		grafo_aux2[grafoCc[0][i]][grafoCc[0][i+1]] = grafo_sol[grafoCc[0][i]][grafoCc[0][i+1]];
+		grafo_aux2[i+1][i] = grafo_sol[i+1][i];
 	}
+	printf("El Grafo Auxiliar2 es: \n");
+	for(int i = 0; i < edges; i++){
+		for(int j = 0; j< edges; j++){
+			printf("(%d,%d) ", grafo_aux2[i][j].ff, grafo_aux2[i][j].ss);
+		}
+		printf("\n");
+	}
+	printf("El nuevo ciclo es: \n");
+	vector <int> ciclo_aux = eulerian_path(grafo_aux);
+	for(int k = 0; k < ciclo_aux.size(); k++){
+		printf("%d ", ciclo_aux[k]);
+	}
+	printf("\n");
+	int beneficio_n = calcular_beneficio(ciclo_aux, grafo);
+	printf("Los beneficios son: %d %d\n",beneficio_n, beneficio_sol);
+	if (beneficio_n > beneficio_sol) {
+		grafo_sol = grafo_aux;
+		ciclo = ciclo_aux;
+	}
+
 }
 
 
