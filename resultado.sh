@@ -1,11 +1,15 @@
 #!/bin/bash
 
-search_dir=$1
-for entry in "$search_dir"/*
-do
-  	echo "$entry"  
-	./sin_proy < $entry
-	echo " " 
-done
-
+if [ $# -ne 2 ]; then
+	echo "Uso: ./resultado.sh pathDirectorioEntrada nameFileSalida"
+else
+	for entry in `ls -v $1`
+	do
+		result=$(./sin_proy < "$1$entry")
+		echo "$result"
+		echo " "
+		y=(${result//$'\n'/ })
+		echo ${y[0]} >> $2		 
+	done
+fi
 
