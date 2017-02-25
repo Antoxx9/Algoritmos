@@ -339,7 +339,7 @@ int calcular_beneficio(vector<int> ciclo, vector< vector< pair<int,int> > > graf
 	}
 	return beneficio;
 }
-/*
+
 void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo){
 	int edges, beneficio_sol;
 	vector< vector< pair<int,int> > > grafo_sol;
@@ -408,7 +408,8 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo)
 		}
 	}
 }
-*/
+
+
 int main(){
 	int v1,v2,costo,beneficio,edges,edg1,edg2,ids;
 	pair<int,int> aux,aux1,aux2;
@@ -602,13 +603,13 @@ int main(){
 			ciclo_aux.push_back(ciclo[i+1]);
 		}
 	}
-	//elim_euleriana(ciclo_aux, grafo);
+	elim_euleriana(ciclo_aux, grafo);
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
 	printf("%d\n", resultado);
-	//for(int i = 0; i < ciclo_aux.size(); i++){
-	//	printf("%d ",ciclo_aux[i]);
-	//}
-	//printf("\n");
+	for(int i = 0; i < ciclo_aux.size(); i++){
+		printf("%d ",ciclo_aux[i]);
+	}
+	printf("\n");
 	int fact = 1;
 
 	for(int i = 0; i < ciclo_aux.size()-1; i++){
