@@ -336,8 +336,6 @@ vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 	return res;
 }
 
-
-
 int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo) {
 	int beneficio = 0;
 	for(int i = 0; i < ciclo.size()-1; i++) {
