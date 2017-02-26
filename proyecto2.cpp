@@ -18,7 +18,8 @@ using namespace std;
 
 vector<int> uf;
 
-// union find
+//Estructura de conjuntos disjuntos (union find) utilizada para la implementacion
+//del algoritmo de kruskal para hallar el MST de un grafo.
 
 void inituf(int n){
 	uf.clear();
@@ -51,6 +52,8 @@ void joinfind(int n, int i){
 
 }
 
+// Funcion reconstruir la cual a partir de 2 nodos, reconstruye el camino de
+// costo minimo entre ellos y los retorna en un vector. 
 vector<int> reconstruir(vector< vector<int> > &next, int u, int v){
 	vector<int> camino;
 	camino.push_back(u);
@@ -61,15 +64,20 @@ vector<int> reconstruir(vector< vector<int> > &next, int u, int v){
 	return camino;
 }
 
-vector< pair< int, pair<int,int> > > kruskal(vector< pair< int, pair<int,int> > > &lados, vector<int> &cc, int ids){
-	priority_queue<pair< int, pair<int,int> >, vector< pair< int, pair<int,int> > >, greater< pair< int, pair<int,int> > > > cola;
+// Funcion kruskal la cual a partir de una lista de lados y componentes conexas
+// halla el MST para conectar todas las componentes entre si
+vector< pair< int, pair<int,int> > > kruskal(vector< pair< int, pair<int,int> > > &lados, 
+											 vector<int> &cc, int ids){
+	priority_queue<pair< int, pair<int,int> >, vector< pair< int, pair<int,int> > >, 
+				   greater< pair< int, pair<int,int> > > > cola;
+	vector< pair< int, pair<int,int> > > lados_s;
+	pair<int, pair<int,int> > lado;
 	for(int i = 0; i < lados.size(); i++){
 		cola.push(lados[i]);
 	}
 
 	inituf(ids);
-	vector< pair< int, pair<int,int> > > lados_s;
-	pair<int, pair<int,int> > lado;
+	
 	while(!cola.empty()){
 		lado = cola.top();
 		cola.pop();
@@ -79,9 +87,10 @@ vector< pair< int, pair<int,int> > > kruskal(vector< pair< int, pair<int,int> > 
 		}
 	}
 	return lados_s;
-
 }
 
+// Funcion es_par, la cual dada un grafo en el cual se pueden
+// representar lados duplicados, calcula la paridad del mismo.
 bool es_par(vector<vector<vector<pair<int,int> > > > &grafo){
 	bool es_par = true;
 	int incidentes;
@@ -100,7 +109,11 @@ bool es_par(vector<vector<vector<pair<int,int> > > > &grafo){
 	return es_par;
 }
 
-void gen_grafo_impar(vector< vector< vector< pair<int,int> >  > > &grafoR, vector< vector< int > > &grafoI, vector< vector< int > > &floyd){
+// Funcion gen_grafo_impar, a partir de un grafo que no es par, genera un
+// grafo completo con todos los nodos de grado impar el cual esta compuesto
+// por los caminos de costo minimo entre todos los nodos.
+void gen_grafo_impar(vector< vector< vector< pair<int,int> >  > > &grafoR, vector< vector< int > > &grafoI, 
+	                 vector< vector< int > > &floyd){
 	vector<int> impares;
 	int incidentes;
 	for(int i = 0; i < grafoR.size(); i++){
@@ -123,8 +136,12 @@ void gen_grafo_impar(vector< vector< vector< pair<int,int> >  > > &grafoR, vecto
 	}
 }
 
+// Funcion perfect_matching, la cual se encarga de generar el apareamiento
+// minimo perfecto de un grafo con la finalidad de volver par al mismo, devuelve
+// la lista de lados que se añadiran al grafo.
 void perfect_matching(vector< vector< int > > &grafoI, vector< pair< int, pair<int,int> > > &lados){
-	priority_queue<pair< int, pair<int,int> >, vector< pair< int, pair<int,int> > >, greater< pair< int, pair<int,int> > > > cola;
+	priority_queue<pair< int, pair<int,int> >, vector< pair< int, pair<int,int> > >, 
+	                    greater< pair< int, pair<int,int> > > > cola;
 	pair< int, pair<int,int> > lado;
 
 	for(int i = 0; i < grafoI.size(); i++){
@@ -153,9 +170,9 @@ void perfect_matching(vector< vector< int > > &grafoI, vector< pair< int, pair<i
 
 }
 
-// Realiza floyd warshall para hallar los caminos de mayor beneficio entre todo el grafo.
+// Funcion floyd_warshall, la cual calcula los caminos de costo minimo entre cada
+// par de nodos del grafo.
 void floyd_warshall(vector< vector< int > > &floyd, vector< vector< int > > &next, int edges){
-
 	for(int k = 1; k <= edges; k++){
 		for(int i = 1; i <= edges; i++){
 			for(int j = 1; j <= edges; j++){
@@ -168,7 +185,9 @@ void floyd_warshall(vector< vector< int > > &floyd, vector< vector< int > > &nex
 	}
 }
 
-// crea un nuevo grafo donde cada nodo es una componente conexa.
+// Funcion llenar_componente, la cual dado un grafo y los identificadores de
+// las componentes conexas, crea el grafo asociado en el cual cada vertice 
+// corresponde a una componente conexa del grafo original.
 void llenar_componentes(vector< vector< int > > &grafo, vector< int > &cc){
 	for(int i = 0; i < cc.size(); i++){
 		if(cc[i] != -1){
@@ -178,8 +197,10 @@ void llenar_componentes(vector< vector< int > > &grafo, vector< int > &cc){
 
 }
 
-// Llena con el lado de menor costo entre cada componente conexa, diciendo de donde a donde va.
-void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, vector< pair< int,pair<int,int> > > &lados,vector< vector< pair<int,int> > > grafo){
+// Funcion llenar_lados, esta se encarga de retornar una lista de lados compuesta
+// por los caminos de costo minimo entre cada par de componentes conexas.
+void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, 
+	              vector< pair< int,pair<int,int> > > &lados,vector< vector< pair<int,int> > > grafo){
 	lados.clear();
 	int min;
 	pair<int,int> lado;
@@ -204,7 +225,9 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 	}
 }
 
-// dfs con un booleano para eliminar componentes conexas falsas.
+// Funcion dfs, la cual se encarga de recorrer el grafo a profundidad para
+// obtener las componentes conexas del mismo, se apoya de un booleano para
+// identificar nodos inexistentes o componentes conexas ficticias.
 int dfs(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edge, int id){
 	
 	int falso = 0;
@@ -225,7 +248,9 @@ int dfs(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edge, i
 
 }
 
-// Hace Dfs desde cada nodo de el grafo que aun no haya sido visitado.
+// Funcion comp_con, la cual se encarga de hacer dfs desde cada nodo del grafo 
+// original que aun no haya sido visitado para asi calcular todas las componentes
+// conexas del mismo, retorna la cantidad de componentes del grafo.
 int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edges){
 	
 	bool puede = false;
@@ -248,6 +273,9 @@ int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int ed
 
 }
 
+// Funcion eulerian_path, la cual toma una estructura de grafo que permita
+// lados duplicados, y se encarga de calcular un ciclo euleriano del mismo
+// el cual es retornado en forma de vector. 
 vector<int> eulerian_path(vector< vector< vector< pair<int,int> > > > &grafo){
 	vector<int> res,st,visitados;
 	visitados.resize(grafo.size()+1);
@@ -291,6 +319,9 @@ vector<int> eulerian_path(vector< vector< vector< pair<int,int> > > > &grafo){
 	return res;
 }
 
+// Funcion eulerian_path, la cual toma una estructura de grafo que no permita
+// lados duplicados, y se encarga de calcular un ciclo euleriano del mismo
+// el cual es retornado en forma de vector. 
 vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 	vector<int> res,st;
 	vector<int> visitado;
@@ -335,6 +366,8 @@ vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 	return res;
 }
 
+// Funcion calcular_beneficio, dado un ciclo factible y el grafo original, se encarga
+// de calcular el beneficio total obtenido por el ciclo. 
 int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo) {
 	int beneficio = 0;
 	for(int i = 0; i < ciclo.size()-1; i++) {
@@ -345,7 +378,12 @@ int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo
 	return beneficio;
 }
 
-void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo, vector< vector< int > > &next, vector< vector< int > > &floyd){
+// Funcion elimi_euleriana, la cual implementa el algoritmo de mejoramiento expuesto
+// en el enunciado con unas leves modificaciones para tratar de obtener una mejor solucion
+// al ciclo original.
+void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo, vector< vector< int > > &next, 
+				    vector< vector< int > > &floyd){
+	// Declaracion de los auxiliares que usara la funcion
 	int edges, beneficio_sol,beneficio_n,comp;
 	vector< vector< pair<int,int> > > grafo_sol;
 	vector< vector< pair<int,int> > > grafo_aux;
@@ -354,6 +392,7 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 	vector< int > cc, ciclo_aux, ciclo_aux2, camino;
 	vector< vector< int > > grafoCc;
 	beneficio_sol = calcular_beneficio(ciclo, grafo);
+
 	// Creacion del grafo con los lados del ciclo optimo.
 	edges = grafo.size();
 	cc.resize(edges);
@@ -376,7 +415,9 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 	}
 
 	// Eliminacion euleriana de lados duplicados.
-	
+	// En este punto, se procede a eliminar los lados duplicados del grafo
+	// solucion desde el ultimo vertice al primero con la finalidad de desconectar
+	// de ultimo al deposito.
 	for (int i = edges-1; i >= 0; i--) {
 		for (int j = i; j >= 0; j--) {
 			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
@@ -392,6 +433,8 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 				if (comp == 1) {
 					grafo_aux3 = grafo_aux;
 					ciclo_aux = eulerian_path_no_dup(grafo_aux3);
+					// Se construye el ciclo factible asegurandonos de eliminar
+					// las conexiones inexistentes en el grafo original.
 					ciclo_aux2.clear(); 
 					ciclo_aux2.push_back(ciclo_aux[0]);
 					for(int i = 0; i < ciclo_aux.size()-1; i++){
@@ -418,6 +461,10 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 	}
 
 	// Eliminacion euleriana de componentes conexas.
+	// Luego de la eliminacion euleriana de lados, se procede a realizar la 
+	// eliminacion de componentes conexas para lo cual se eliminan los lados
+	// duplicados restantes en el grafo solucion y a evaluar la cantidad de
+	// componentes conexas restantes en el grafo. 
 	for (int i = edges-1; i >= 0; i--) {
 		for (int j = i; j >= 0; j--) {
 			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
@@ -441,6 +488,8 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 						}
 					}
 					ciclo_aux = eulerian_path_no_dup(grafo_aux2);
+					// Se construye el ciclo factible asegurandonos de eliminar
+					// las conexiones inexistentes en el grafo original.
 					ciclo_aux2.clear(); 
 					ciclo_aux2.push_back(ciclo_aux[0]);
 					for(int i = 0; i < ciclo_aux.size()-1; i++){
@@ -467,6 +516,9 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 	}
 }
 
+// Funcion eliminacion_ciclo_negativo, la cual implementa otro algoritmo de mejora
+// el cual se encarga de eliminar los ciclos que aporten beneficios negativos de 
+// la solucion encontrada.
 vector<int> eliminacion_ciclo_negativo(vector<int> ciclo, vector< vector< pair<int,int> > > grafo){
 	pair<int,int> lado,lado1,lado2;
 	vector<int> ciclo_aux;
@@ -489,27 +541,29 @@ vector<int> eliminacion_ciclo_negativo(vector<int> ciclo, vector< vector< pair<i
 	return ciclo;
 }
 
-
+// Programa principal
 int main(){
-	vector< pair< int,pair<int,int> > > lados;
-	vector< vector< pair<int,int> > > grafo;
-	vector< vector< pair<int,int> > > grafoR;
-	vector< vector< pair<int,int> > > grafo_aux;
-	vector< vector< vector< pair<int,int> > > > grafoR2;
-	vector< vector< int > > grafoI;
-	vector< vector< int > > floyd;
-	vector< vector< int > > next;
-	vector< vector< int > > grafoCc;
-	vector< int > cc;
-	priority_queue< pair< int,pair<int,int> > > posibles;
-	vector<int> camino;
-	vector<int> ciclo;
+	vector< pair< int,pair<int,int> > > lados; // Estructura para representar los lados de un grafo.
+	vector< vector< pair<int,int> > > grafo;   // Grafo original, construido durante la lectura.
+	vector< vector< pair<int,int> > > grafoR;  // Grafo que representa los lados R U Q.
+	vector< vector< pair<int,int> > > grafo_aux; // Grafo auxiliar.
+	vector< vector< vector< pair<int,int> > > > grafoR2; // Grafo que representa los lados R U Q y soporta lados duplicados.
+	vector< vector< int > > grafoI; // Grafo para almacenar vectores impares.
+	vector< vector< int > > floyd;  // Matriz para realizar floyd warshall.
+	vector< vector< int > > next;	// Matriz para almacenar los caminos encontrados por floyd warshall.
+	vector< vector< int > > grafoCc; // Grafo para construir el grafo compuesto por las componentes conexas.
+ 	vector< int > cc; // Arreglo que representa la componente conexa a la que pertenece el nodo i.
+	vector<int> camino, recons; // Arreglo para representar un camino reconstruido.
+	vector<int> ciclo; // Arreglo para representar el ciclo obtenido.
+	vector<int> ciclo_aux; // Arreglo para representar un ciclo auxiliar.
+	vector<int> ciclo_elim; // Arreglo para representar el ciclo obtenido luego de la mejora.
 	int v1,v2,costo,beneficio,edges,edg1,edg2,ids;
 	pair<int,int> aux,aux1,aux2;
 
 	scanf("number of vertices :  %d \n",&edges);
 	scanf("number of required edges %d \n",&edg1);
 
+	// Inicializacion de las estructuras
 	grafo.resize(edges+1);
 	grafoR.resize(edges+1);
 	grafoR2.resize(edges+1);
@@ -519,7 +573,6 @@ int main(){
 	next.resize(edges+1);
 	cc.resize(edges+1);
 	
-	// Inicializaciones.
 	for(int i = 0; i <= edges; i++){
 		grafo[i].resize(edges+1);
 		grafoR[i].resize(edges+1);
@@ -573,7 +626,8 @@ int main(){
 		grafo[v2][v1] = aux2;
 	}
 	
-	// Inicializacion de floyd y next
+	// Inicializacion delas matrices floyd y next las cuales
+	// requieren del grafo ya construido.
 	for(int i = 0; i <= edges; i++){
 		for(int j = 0; j <= edges; j++){
 			if(grafo[i][j].ff != -1){
@@ -594,9 +648,8 @@ int main(){
 		}
 	}
 
-	//Probando las componentes conexas de R
-	vector<int> recons;
-	vector<int> recnst;
+	// Se calculan las componentes conexas del grafo y se
+	// añade el deposito en caso de no estar.
 	ids = comp_con(grafoR,cc,edges);
 	if(cc[1] == -1){
 		cc[1]++;
@@ -607,18 +660,23 @@ int main(){
 		}
 		ids++;
 	}
+	// Se realiza el floyd warshall asociado al grafo.
 	floyd_warshall(floyd,next,edges);
+	// En caso de tener un grafo desconectado, se procede a construir
+	// el grafo en el cual cada nodo es una componente conexa, luego se
+	// calcula el mst asociado a ese grafo y se añaden todos los lados
+	// reconstruidos de los caminos de costo minimo en el grafo.
 	if(ids != 1){
 		grafoCc.resize(ids);
 		llenar_componentes(grafoCc,cc);
 		llenar_lados(floyd,grafoCc,lados,grafo);
 		lados = kruskal(lados,cc,ids);
 		for(int i = 0; i < lados.size(); i++){
-			recnst.clear();
-			recnst = reconstruir(next,lados[i].ss.ff,lados[i].ss.ss);
-			for(int j = 0; j < recnst.size()-1; j++){
-				grafo_aux[recnst[j]][recnst[j+1]] = mp(floyd[recnst[j]][recnst[j+1]],-1);
-				grafo_aux[recnst[j+1]][recnst[j]] = mp(floyd[recnst[j+1]][recnst[j]],-1);
+			recons.clear();
+			recons = reconstruir(next,lados[i].ss.ff,lados[i].ss.ss);
+			for(int j = 0; j < recons.size()-1; j++){
+				grafo_aux[recons[j]][recons[j+1]] = mp(floyd[recons[j]][recons[j+1]],-1);
+				grafo_aux[recons[j+1]][recons[j]] = mp(floyd[recons[j+1]][recons[j]],-1);
 			}
 		}
 		for(int i = 0; i < grafo_aux.size(); i++){
@@ -629,6 +687,9 @@ int main(){
 			}
 		}
 	}
+	// Se verifica la paridad del grafo, en caso de no ser par, se calcula
+	// el minimo apareamiento perfecto del grafo para poder volverlo par y se
+	// añaden esos lados al grafo.
 	if(!es_par(grafoR2)){
 		gen_grafo_impar(grafoR2,grafoI,floyd);
 		perfect_matching(grafoI,lados);
@@ -643,9 +704,11 @@ int main(){
 			}
 		}
 	}
+	// Se calcula un primer ciclo solucion al grafo y se reconstruye con
+	// la finalidad de que para cada par de nodos exista un camino en el
+	// grafo original.
 	ciclo = eulerian_path(grafoR2);
 
-	vector<int> ciclo_aux, ciclo_elim; 
 	ciclo_aux.push_back(ciclo[0]);
 	for(int i = 0; i < ciclo.size()-1; i++){
 		if (grafo[ciclo[i]][ciclo[i+1]].ff != floyd[ciclo[i]][ciclo[i+1]]) {
@@ -658,7 +721,12 @@ int main(){
 			ciclo_aux.push_back(ciclo[i+1]);
 		}
 	}
+	// Se procede a realizar la eliminacion euleriana para tratar de mejorar
+	// la primera solucion obtenida.
 	elim_euleriana(ciclo_aux, grafo, next, floyd);
+	// Se eliminan los ciclos de costo negativo y se observa si se mejoro la 
+	// solucion, en caso positivo se sustituye el resultado y el ciclo por
+	// los obtenidos de la mejora y se imprimen. 
 	ciclo_elim =eliminacion_ciclo_negativo(ciclo_aux,grafo);
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
 	int resultado_elim = calcular_beneficio(ciclo_elim,grafo);
@@ -671,16 +739,6 @@ int main(){
 		printf("%d ",ciclo_aux[i]);
 	}
 	printf("\n");
-
-	int fact = 1;
-	for(int i = 0; i < ciclo_aux.size()-1; i++){
-		if(grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff == -1){
-			printf("%d %d\n",ciclo_aux[i],ciclo_aux[i+1]);
-			fact = 0;
-			break;
-		}
-	}
-	printf("Factible: %d\n",fact);
 }
 		
 	
