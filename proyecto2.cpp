@@ -166,7 +166,6 @@ void floyd_warshall(vector< vector< int > > &floyd, vector< vector< int > > &nex
 			}
 		}
 	}
-
 }
 
 // crea un nuevo grafo donde cada nodo es una componente conexa.
@@ -378,8 +377,8 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 
 	// Eliminacion euleriana de lados duplicados.
 	
-	for (int i = 0; i < edges; i++) {
-		for (int j = i; j < edges; j++) {
+	for (int i = edges-1; i >= 0; i--) {
+		for (int j = i; j >= 0; j--) {
 			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
 				grafo_aux = grafo_sol;
 				grafo_aux[j][i].ff = (grafo_aux[i][j].ff = -1);
@@ -419,8 +418,8 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 	}
 
 	// Eliminacion euleriana de componentes conexas.
-	for (int i = 0; i < edges; i++) {
-		for (int j = i; j < edges; j++) {
+	for (int i = edges-1; i >= 0; i--) {
+		for (int j = i; j >= 0; j--) {
 			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
 				grafo_aux = grafo_sol;
 				grafo_aux[j][i].ff = (grafo_aux[i][j].ff = -1);
@@ -466,6 +465,28 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 			}
 		}
 	}
+}
+
+vector<int> eliminacion_ciclo_negativo(vector<int> ciclo, vector< vector< pair<int,int> > > grafo){
+	pair<int,int> lado,lado1,lado2;
+	vector<int> ciclo_aux;
+	int beneficio;
+	for(int i = 1; i < ciclo.size()-1; i++){
+		ciclo_aux.clear();
+		lado = mp(ciclo[i],i);
+		ciclo_aux.push_back(lado.ff);
+		for(int j = i+1; j < ciclo.size(); j++){
+			lado2 = mp(ciclo[j],j);
+			ciclo_aux.push_back(lado2.ff);
+			if(lado.ff == lado2.ff){
+				beneficio = calcular_beneficio(ciclo_aux,grafo);
+				if(beneficio <= 0){
+					ciclo.erase(ciclo.begin()+lado.ss,ciclo.begin()+lado2.ss);
+				}
+			}
+		}
+	}
+	return ciclo;
 }
 
 
@@ -624,7 +645,7 @@ int main(){
 	}
 	ciclo = eulerian_path(grafoR2);
 
-	vector<int> ciclo_aux; 
+	vector<int> ciclo_aux, ciclo_elim; 
 	ciclo_aux.push_back(ciclo[0]);
 	for(int i = 0; i < ciclo.size()-1; i++){
 		if (grafo[ciclo[i]][ciclo[i+1]].ff != floyd[ciclo[i]][ciclo[i+1]]) {
@@ -638,12 +659,28 @@ int main(){
 		}
 	}
 	elim_euleriana(ciclo_aux, grafo, next, floyd);
+	ciclo_elim =eliminacion_ciclo_negativo(ciclo_aux,grafo);
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
+	int resultado_elim = calcular_beneficio(ciclo_elim,grafo);
+	if(resultado < resultado_elim){
+		resultado = resultado_elim;
+		ciclo_aux = ciclo_elim;
+	}
 	printf("%d\n", resultado);
 	for(int i = 0; i < ciclo_aux.size(); i++){
 		printf("%d ",ciclo_aux[i]);
 	}
 	printf("\n");
+
+	int fact = 1;
+	for(int i = 0; i < ciclo_aux.size()-1; i++){
+		if(grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff == -1){
+			printf("%d %d\n",ciclo_aux[i],ciclo_aux[i+1]);
+			fact = 0;
+			break;
+		}
+	}
+	printf("Factible: %d\n",fact);
 }
 		
 	
