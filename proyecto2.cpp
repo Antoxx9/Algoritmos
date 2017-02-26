@@ -181,7 +181,8 @@ void llenar_componentes(vector< vector< int > > &grafo, vector< int > &cc){
 }
 
 // Llena con el lado de menor costo entre cada componente conexa, diciendo de donde a donde va.
-void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, vector< pair< int,pair<int,int> > > &lados){
+void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, vector< pair< int,pair<int,int> > > &lados,
+				  vector< vector< pair<int,int> > > grafo){
 	lados.clear();
 	int min;
 	pair<int,int> lado;
@@ -193,6 +194,11 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 					if(floyd[grafoCc[k][l]][grafoCc[i][j]] < min){
 						min = floyd[grafoCc[k][l]][grafoCc[i][j]];
 						lado = mp(grafoCc[k][l],grafoCc[i][j]);
+					}
+					else if (floyd[grafoCc[k][l]][grafoCc[i][j]] == min) {
+						if (grafo[grafoCc[k][l]][grafoCc[i][j]].ss > grafo[lado.ff][lado.ss].ss) {
+							lado = mp(grafoCc[k][l],grafoCc[i][j]);
+						}	
 					}
 				}
 			}
@@ -343,8 +349,6 @@ vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 	reverse(res.begin(),res.end());
 	return res;
 }
-
-
 
 int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo) {
 	int beneficio = 0;
@@ -597,7 +601,7 @@ int main(){
 	if(ids != 1){
 		grafoCc.resize(ids);
 		llenar_componentes(grafoCc,cc);
-		llenar_lados(floyd,grafoCc,lados);
+		llenar_lados(floyd,grafoCc,lados,grafo);
 		lados = kruskal(lados,cc,ids);
 		for(int i = 0; i < lados.size(); i++){
 			recnst.clear();
@@ -644,13 +648,14 @@ int main(){
 			ciclo_aux.push_back(ciclo[i+1]);
 		}
 	}
-	int cosa = calcular_beneficio(ciclo_aux,grafo);
+	//int cosa = calcular_beneficio(ciclo_aux,grafo);
 	elim_euleriana(ciclo_aux, grafo, next, floyd);
 
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
-	printf("\n");
-	printf("El primer resultado fue %d \n",cosa);
-	printf("El resultado es: %d\n", resultado);
+	//printf("\n");
+	//printf("El primer resultado fue %d \n",cosa);
+	//printf("El resultado es: %d\n", resultado);
+	printf("%d\n", resultado);	
 	for(int i = 0; i < ciclo_aux.size(); i++){
 		printf("%d ",ciclo_aux[i]);
 	}
@@ -666,7 +671,7 @@ int main(){
 			break;
 		}
 	}
-	printf("Factible: %d\n",fact);
+	//printf("Factible: %d\n",fact);
 }
 		
 	
