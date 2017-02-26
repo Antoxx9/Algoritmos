@@ -171,7 +171,6 @@ void floyd_warshall(vector< vector< int > > &floyd, vector< vector< int > > &nex
 
 // crea un nuevo grafo donde cada nodo es una componente conexa.
 void llenar_componentes(vector< vector< int > > &grafo, vector< int > &cc){
-
 	for(int i = 0; i < cc.size(); i++){
 		if(cc[i] != -1){
 			grafo[cc[i]].push_back(i);
@@ -181,7 +180,7 @@ void llenar_componentes(vector< vector< int > > &grafo, vector< int > &cc){
 }
 
 // Llena con el lado de menor costo entre cada componente conexa, diciendo de donde a donde va.
-void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, vector< pair< int,pair<int,int> > > &lados){
+void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafoCc, vector< pair< int,pair<int,int> > > &lados,vector< vector< pair<int,int> > > grafo){
 	lados.clear();
 	int min;
 	pair<int,int> lado;
@@ -193,6 +192,11 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 					if(floyd[grafoCc[k][l]][grafoCc[i][j]] < min){
 						min = floyd[grafoCc[k][l]][grafoCc[i][j]];
 						lado = mp(grafoCc[k][l],grafoCc[i][j]);
+					}
+					else if (floyd[grafoCc[k][l]][grafoCc[i][j]] == min) {
+						if (grafo[grafoCc[k][l]][grafoCc[i][j]].ss > grafo[lado.ff][lado.ss].ss) {
+							lado = mp(grafoCc[k][l],grafoCc[i][j]);
+						}	
 					}
 				}
 			}
@@ -227,9 +231,9 @@ int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int ed
 	
 	bool puede = false;
 	int id = 0;
-	for(int i = 1; i <= edges; i++){
+	for(int i = 0; i <= edges; i++){
 		puede = false;
-		for(int j = 1; j < grafo[i].size(); j++){
+		for(int j = 0; j < grafo[i].size(); j++){
 			if(grafo[i][j].ff != -1){
 				puede = true;
 				break;
@@ -254,7 +258,7 @@ vector<int> eulerian_path(vector< vector< vector< pair<int,int> > > > &grafo){
 		int v = st.back();
 		vacio = true;
 		for(int i = 1; i < grafo[v].size(); i++){
-			if(grafo[v][i].size() >= 1){
+			if(v!=i && grafo[v][i].size() >= 1){
 				vacio = false;
 				break;
 			}
@@ -265,21 +269,15 @@ vector<int> eulerian_path(vector< vector< vector< pair<int,int> > > > &grafo){
 				grafo[v][i].clear();
 				grafo[i][v].clear();
 			}
-			if(visitados[v] && v == 1){
-				res.push_back(v);
-				break;
-			}
-			if(!visitados[v]){
-				visitados[v] = 1;
-				res.push_back(v);	
-			}
+			res.push_back(v);	
 			st.pop_back();
 		}
 		else{
 			int primero;
 			for(int i = 0; i < grafo[v].size(); i++){
-				if(grafo[v][i].size() >= 1){
+				if(v!=i && grafo[v][i].size() >= 1){
 					grafo[v][i].clear();
+					grafo[i][v].clear();
 					primero = i;
 					break;
 				}
@@ -287,10 +285,10 @@ vector<int> eulerian_path(vector< vector< vector< pair<int,int> > > > &grafo){
 			st.push_back(primero);
 		}
 	}
+	reverse(res.begin(),res.end());
 	if(res[res.size()-1] != 1){
 		res.push_back(1);
 	}
-	reverse(res.begin(),res.end());
 	return res;
 }
 
@@ -315,14 +313,7 @@ vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 				grafo[i][v] = mp(-1,-1);
 				grafo[v][i] = mp(-1,-1);
 			}
-			if(visitado[v] && v == 1){
-				res.push_back(v);
-				break;
-			}
-			if(!visitado[v]){
-				res.push_back(v);
-				visitado[v] = 1;
-			}
+			res.push_back(v);
 			st.pop_back();
 		}
 		else{
@@ -330,6 +321,7 @@ vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 			for(int i = 0; i < grafo[v].size(); i++){
 				if(v!=i && grafo[v][i].ff != -1){
 					grafo[v][i] = mp(-1,-1);
+					grafo[i][v] = mp(-1,-1);
 					primero = i;
 					break;
 				}
@@ -337,10 +329,10 @@ vector<int> eulerian_path_no_dup(vector< vector< pair<int,int> > > &grafo){
 			st.push_back(primero);
 		}
 	}
+	reverse(res.begin(),res.end());
 	if(res[res.size()-1] != 1){
 		res.push_back(1);
 	}
-	reverse(res.begin(),res.end());
 	return res;
 }
 
@@ -407,6 +399,7 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 					ciclo_aux2.push_back(ciclo_aux[0]);
 					for(int i = 0; i < ciclo_aux.size()-1; i++){
 						if (grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff != floyd[ciclo_aux[i]][ciclo_aux[i+1]]) {
+							camino.clear();
 							camino = reconstruir(next, ciclo_aux[i], ciclo_aux[i+1]);
 							for (int j = 1; j < camino.size(); j++) {
 								ciclo_aux2.push_back(camino[j]);
@@ -440,8 +433,10 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 				for(int i = 0; i < edges; i++){
 					cc[i] = -1;
 				}
-
-				if(comp_con(grafo_aux,cc,edges-1) != 1){
+				comp = comp_con(grafo_aux,cc,edges-1);
+				if(comp != 1){
+					grafoCc.clear();
+					grafoCc.resize(edges);
 					llenar_componentes(grafoCc,cc);
 					for (int i = 0; i < grafoCc[0].size(); i++) {
 						for(int j = 0; j < grafoCc[0].size(); j++){
@@ -453,6 +448,7 @@ void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo,
 					ciclo_aux2.push_back(ciclo_aux[0]);
 					for(int i = 0; i < ciclo_aux.size()-1; i++){
 						if (grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff != floyd[ciclo_aux[i]][ciclo_aux[i+1]]) {
+							camino.clear();
 							camino = reconstruir(next, ciclo_aux[i], ciclo_aux[i+1]);
 							for (int j = 1; j < camino.size(); j++) {
 								ciclo_aux2.push_back(camino[j]);
@@ -525,7 +521,6 @@ int main(){
 		}
 	}
 
-
 	// Comienzo de la lectura
 	while(edg1--){
 		scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio);
@@ -597,7 +592,7 @@ int main(){
 	if(ids != 1){
 		grafoCc.resize(ids);
 		llenar_componentes(grafoCc,cc);
-		llenar_lados(floyd,grafoCc,lados);
+		llenar_lados(floyd,grafoCc,lados,grafo);
 		lados = kruskal(lados,cc,ids);
 		for(int i = 0; i < lados.size(); i++){
 			recnst.clear();
@@ -644,29 +639,13 @@ int main(){
 			ciclo_aux.push_back(ciclo[i+1]);
 		}
 	}
-	int cosa = calcular_beneficio(ciclo_aux,grafo);
 	elim_euleriana(ciclo_aux, grafo, next, floyd);
-
 	int resultado = calcular_beneficio(ciclo_aux, grafo);
-	printf("\n");
-	printf("El primer resultado fue %d \n",cosa);
-	printf("El resultado es: %d\n", resultado);
+	printf("%d\n", resultado);
 	for(int i = 0; i < ciclo_aux.size(); i++){
 		printf("%d ",ciclo_aux[i]);
 	}
 	printf("\n");
-
-
-	int fact = 1;
-
-	for(int i = 0; i < ciclo_aux.size()-1; i++){
-		if(grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff == -1){
-			printf("%d %d\n",ciclo_aux[i],ciclo_aux[i+1]);
-			fact = 0;
-			break;
-		}
-	}
-	printf("Factible: %d\n",fact);
 }
 		
 	
