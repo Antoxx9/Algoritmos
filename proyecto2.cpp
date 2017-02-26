@@ -18,6 +18,7 @@ using namespace std;
 vector< pair< int,pair<int,int> > > lados;
 vector< vector< pair<int,int> > > grafo;
 vector< vector< pair<int,int> > > grafoR;
+vector< vector< pair<int,int> > > grafoAux;
 vector< vector< vector< pair<int,int> > > > grafoR2;
 vector< vector< int > > grafoI;
 vector< vector< int > > floyd;
@@ -147,7 +148,7 @@ void gen_grafo_impar(vector< vector< vector< pair<int,int> >  > > &grafoR, vecto
 	for(int i = 0; i < grafoI.size(); i++){
 		for(int j = i+1; j < grafoI[i].size(); j++){
 			if(grafoI[i][j] != -1){
-				printf("%d %d %d\n",i,j,grafoI[i][j]);
+				//printf("%d %d %d\n",i,j,grafoI[i][j]);
 			}
 		}
 	}
@@ -218,7 +219,7 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 	pair<int,int> lado;
 	for(int k = 0; k < grafoCc.size(); k++){
 		for(int i = k+1; i < grafoCc.size(); i++){
-			min = 1000;
+			min = 100000000;
 			for(int l = 0; l < grafoCc[k].size(); l++){
 				for(int j = 0; j < grafoCc[i].size(); j++){
 					if(floyd[grafoCc[k][l]][grafoCc[i][j]] < min){
@@ -234,7 +235,7 @@ void llenar_lados(vector< vector< int > > &floyd, vector< vector< int > > &grafo
 
 // dfs con un booleano para eliminar componentes conexas falsas.
 int dfs(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int edge, int id){
-	
+	//printf("Visite: %d\n",edge);
 	int falso = 0;
 	cc[edge] = id;
 	for(int i = 0; i < grafo[edge].size(); i++){
@@ -276,30 +277,106 @@ int comp_con(vector< vector< pair<int,int> > > &grafo, vector< int > &cc, int ed
 
 }
 
-vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
-	vector<int> res,st;
+vector<int> eulerian_path(vector< vector< vector< pair<int,int> > > > &grafo){
+	vector<int> res,res2,st,visitados;
+	visitados.resize(grafo.size()+1);
 	bool vacio;
 	st.push_back(1);
 	while(!st.empty()){
 		int v = st.back();
 		vacio = true;
+		for(int i = 1; i < grafo[v].size(); i++){
+			if(grafo[v][i].size() >= 1){
+				vacio = false;
+				break;
+			}
+		}
+
+		if(vacio){
+			for(int i = 0; i < grafo[v].size(); i++){
+				grafo[v][i].clear();
+				grafo[i][v].clear();
+			}
+			//visitados[1] = 0;
+			if(!visitados[v]){
+				visitados[v] = 1;
+				res.push_back(v);
+				res2.push_back(v);	
+			}
+			st.pop_back();
+		}
+		else{
+			int primero;
+			for(int i = 0; i < grafo[v].size(); i++){
+				if(grafo[v][i].size() >= 1){
+					grafo[v][i].clear();
+					//grafo[i][v].clear();
+					primero = i;
+					break;
+				}
+			}
+			st.push_back(primero);
+			//grafo[v].pop_back();
+		}
+	}
+	//
+	
+	//sort(res2.begin(), res2.end());
+	//for(int i = 0; i < res2.size(); i++){
+	//	printf("%d ",res2[i]);
+	//}
+	//printf("\n\n\n\n");
+	
+	res.push_back(1);
+	reverse(res.begin(),res.end());
+	printf("primero\n");
+	for(int i = 0; i < res.size(); i++){
+		printf("%d ",res[i]);
+	}
+	//printf("\n\n\n");
+	return res;
+}
+
+
+vector<int> eulerian_path2(vector< vector< pair<int,int> > > &grafo){
+	vector<int> res,st;
+	vector<int> visitado;
+	visitado.resize(grafo.size()+1);
+	bool vacio;
+	st.push_back(1);
+	while(!st.empty()){
+		int v = st.back();
+		//printf("El nodo revisado es: %d \n", v);
+		vacio = true;
 		for(int i = 0; i < grafo[v].size(); i++){
-			if(grafo[v][i].ff != -1){
+			if(v!=i && grafo[v][i].ff != -1){
+				//printf("El nodo %d tiene de fcking vecino 1ero a: %d \n",v,i);
 				vacio = false;
 				break;
 			}
 		}
 
 		if(grafo[v].empty() || vacio){
-			res.push_back(v);
+			//printf("El nodo %d esta vacio\n",v);
+			for(int i = 0; i < grafo.size(); i++){
+				//grafo[i][v] = mp(-1,-1);
+				//grafo[v][i] = mp(-1,-1);
+			}
+			visitado[1] = 0;
+			//if(!visitado[v]){
+				res.push_back(v);
+			//	visitado[v] = 1;
+			//}
 			st.pop_back();
 		}
 		else{
+			//printf("El nodo no esta vacio\n");
 			int primero;
 			for(int i = 0; i < grafo[v].size(); i++){
-				if(grafo[v][i].ff != -1){
+				if(v!=i && grafo[v][i].ff != -1){
+					//printf("El nodo %d tiene de fcking vecino a: %d \n",v,i);
 					grafo[v][i] = mp(-1,-1);
-					grafo[i][v] = mp(-1,-1);
+					//grafo[i][v] = mp(-1,-1);
 					primero = i;
 					break;
 				}
@@ -312,8 +389,18 @@ vector<int> eulerian_path(vector< vector< pair<int,int> > > &grafo){
 	return res;
 }
 
+
+
 int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo) {
 	int beneficio = 0;
+	vector< vector< pair<int,int> > > grafo_aux;
+	//grafo_aux.resize(grafo.size()+1);
+	//for(int i = 0;i < grafo.size(); i++){
+	//	grafo_aux[i].resize(grafo.size()+1);
+	//	for(int j = 0;j < grafo.size(); j++){
+	//		grafo_aux[i][j] = grafo[i][j];
+	//	}
+	//}
 	for(int i = 0; i < ciclo.size()-1; i++) {
 		beneficio += (grafo[ciclo[i]][ciclo[i+1]].ss - grafo[ciclo[i]][ciclo[i+1]].ff);
 		grafo[ciclo[i]][ciclo[i+1]].ss = 0;
@@ -321,32 +408,183 @@ int calcular_beneficio(vector<int> ciclo,vector< vector< pair<int,int> > > grafo
 	}
 	return beneficio;
 }
-/*
-void elim_euleriana(vector< vector<int> > &grafo){
-	for (int i = 0; i < grafo.size(); i++) {
-		for (int j = i; j < grafo.size(); j++) {
-			// Eliminacion euleriana de lados duplicados.
-			if (grafo[i][j].ff != -1 && grafo[j][i].ff != -1) {
-				grafo_elim = grafo;
-				grafo_elim[j][i] = (grafo_elim[i][j] = 0);
-				if (comp_con(grafo_elim,) != 1 && es_par(grafo_elim)) {
-					ciclo_euleriano(grafo_elim);
+
+bool es_par2(vector<vector<pair<int,int> > > &grafo){
+	bool es_par = true;
+	int incidentes;
+	for(int i = 0; i < grafo.size(); i++){
+		incidentes = 0;
+		for (int j = 0; j < grafo.size(); j++) {
+			if (grafo[i][j].ff != -1) {
+				incidentes++;
+			} 		
+		}
+		if (incidentes % 2 != 0) {
+			es_par = false;
+			break;
+		}
+	}
+	return es_par;
+}
+
+void elim_euleriana(vector<int> &ciclo, vector< vector< pair<int,int> > > grafo){
+	int edges, beneficio_sol;
+	vector< vector< pair<int,int> > > grafo_sol;
+	vector< vector< pair<int,int> > > grafo_aux;
+	vector< vector< pair<int,int> > > grafo_aux2;
+	vector< vector< pair<int,int> > > grafo_aux3;
+	vector< int > cc;
+	vector< vector< int > > grafoCc;
+	beneficio_sol = calcular_beneficio(ciclo, grafo);
+	// Creacion del grafo con los lados del ciclo optimo.
+	edges = grafo.size();
+	cc.resize(edges);
+	grafo_sol.resize(edges);
+	grafo_aux2.resize(edges);
+	grafoCc.resize(edges);
+	for(int i = 0; i < edges; i++){
+		cc[i] = -1;
+		grafo_sol[i].resize(edges);
+		grafo_aux2[i].resize(edges);
+	}
+	for(int i = 0; i < edges; i++){
+		for(int j = 0;j < edges; j++){
+			grafo_sol[i][j] = mp(-1,-1);
+			grafo_aux2[i][j] = mp(-1,-1);
+		}
+	}
+	for (int i = 0; i < ciclo.size()-1; i++) {
+		grafo_sol[ciclo[i]][ciclo[i+1]] = grafo[ciclo[i]][ciclo[i+1]];
+		//grafo_sol[ciclo[i+1]][ciclo[i]] = grafo[ciclo[i+1]][ciclo[i]];
+	}
+
+	//printf("%d\n", edges);
+	//printf("El Grafo Solucion es: \n");
+	//for(int i = 0; i < edges; i++){
+	//	for(int j = 0; j< edges; j++){
+	//		printf("(%d,%d) ", grafo_sol[i][j].ff, grafo_sol[i][j].ss);
+	//	}
+	//	printf("\n");
+	//}
+	printf("\n");
+
+	// Eliminacion euleriana de lados duplicados.
+	
+	for (int i = 0; i < edges; i++) {
+		for (int j = i; j < edges; j++) {
+			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
+				//printf("LOOOL\n");
+				//printf("[%d][%d]\n", i,j);
+				grafo_aux = grafo_sol;
+				grafo_aux[j][i].ff = (grafo_aux[i][j].ff = -1);
+				grafo_aux[j][i].ss = (grafo_aux[i][j].ss = -1);
+				grafo_aux[j][j].ff = (grafo_aux[j][j].ss = 0);
+				grafo_aux[i][i].ff = (grafo_aux[i][i].ss = 0);
+
+				//printf("El Grafo Auxiliar es: \n");
+				//for(int i = 0; i < edges; i++){
+				//	for(int j = 0; j< edges; j++){
+				//		printf("(%d,%d) ", grafo_aux[i][j].ff, grafo_aux[i][j].ss);
+				//	}
+				//	printf("\n");
+				//}
+				//printf("\n");
+				for(int i = 0; i < edges; i++){
+					cc[i] = -1;
+					//grafo_sol[i].resize(edges);
+					//grafo_aux2[i].resize(edges);
+				}
+				int comp = comp_con(grafo_aux,cc,edges-1);
+				if (comp == 1 && es_par2(grafo_aux)) {
+					printf("Fue par\n");
+					grafo_aux3 = grafo_aux;
+					vector <int> ciclo_aux = eulerian_path2(grafo_aux3);
+					printf("El nuevo ciclo 1 es: \n");
+					for(int k = 0; k < ciclo_aux.size(); k++){
+						printf("%d ", ciclo_aux[k]);
+					}
+					printf("\n");
+					int beneficio_n = calcular_beneficio(ciclo_aux, grafo);
+					printf("Los beneficios1 son: %d %d\n",beneficio_n, beneficio_sol);
+					if (beneficio_n > beneficio_sol) {
+						grafo_sol = grafo_aux;
+						ciclo = ciclo_aux;
+						beneficio_sol = beneficio_n;
+					}
 				}
 			}
 		}
 	}
 
-	for (int i = 0; i < grafo.size(); i++) {
-		for (int j = i; j < grafo.size(); j++) {
-			// Eliminacion euleriana de lados duplicados.
-			// Eliminacion euleriana de componentes conexas.
-			else {
+	// Eliminacion euleriana de componentes conexas.
+	for (int i = 0; i < edges; i++) {
+		for (int j = i; j < edges; j++) {
+			if (grafo_sol[i][j].ff != -1 && grafo_sol[j][i].ff != -1) {
+				//printf("LOOOL\n");
+				//printf("[%d][%d]\n", i,j);
+				grafo_aux = grafo_sol;
+				grafo_aux[j][i].ff = (grafo_aux[i][j].ff = -1);
+				grafo_aux[j][i].ss = (grafo_aux[i][j].ss = -1);
+				grafo_aux[j][j].ff = (grafo_aux[j][j].ss = 0);
+				grafo_aux[i][i].ff = (grafo_aux[i][i].ss = 0);
 
+				for(int i = 0; i < edges; i++){
+					for(int j = 0;j < edges; j++){
+						//grafo_sol[i][j] = mp(-1,-1);
+						//grafo_aux2[i][j] = mp(-1,-1);
+					}
+				}
+
+				for(int i = 0; i < edges; i++){
+					cc[i] = -1;
+				//	grafo_sol[i].resize(edges);
+				//	grafo_aux2[i].resize(edges);
+				}
+				if(comp_con(grafo_aux,cc,edges-1) != 1){
+					llenar_componentes(grafoCc,cc);
+					//printf("Cosa\n");
+					//for(int i = 0; i < grafoCc[0].size(); i++){
+					//	printf("%d ",grafoCc[0][i]);
+					//}
+					printf("\n");
+					for (int i = 0; i < grafoCc[0].size(); i++) {
+						for(int j = 0; j < grafoCc[0].size(); j++){
+							grafo_aux2[grafoCc[0][i]][grafoCc[0][j]] = grafo_aux[grafoCc[0][i]][grafoCc[0][j]];
+							//grafo_aux2[grafoCc[0][j]][grafoCc[0][i]] = grafo_aux[grafoCc[0][j]][grafoCc[0][i]];
+							//if(grafo_sol[grafoCc[0][i]][grafoCc[0][j]].ff != -1)
+							//printf("%d %d %d %d\n",grafoCc[0][i],grafoCc[0][j],grafo_sol[grafoCc[0][i]][grafoCc[0][j]].ff,grafo_sol[grafoCc[0][i]][grafoCc[0][j]].ss);
+						}
+					}
+					//return;
+					//printf("El Grafo Auxiliar2 es: \n");
+					//for(int i = 0; i < edges; i++){
+					//	for(int j = 0; j< edges; j++){
+					//		printf("(%d,%d) ", grafo_aux2[i][j].ff, grafo_aux2[i][j].ss);
+					//	}
+					//	printf("\n");
+					//}
+					//printf("\n");
+					//if(es_par2(grafo_aux2)){
+						vector <int> ciclo_aux = eulerian_path2(grafo_aux2);
+						for(int k = 0; k < ciclo_aux.size(); k++){
+							printf("%d ", ciclo_aux[k]);
+						}
+						printf("\n");
+						int beneficio_n = calcular_beneficio(ciclo_aux, grafo);
+						printf("Los beneficios2 son: %d %d\n",beneficio_n, beneficio_sol);
+						if (beneficio_n > beneficio_sol) {
+							grafo_sol = grafo_aux;
+							ciclo = ciclo_aux;
+							beneficio_sol = beneficio_n;
+						}
+						printf("\n");
+					//}
+				}
 			}
 		}
 	}
 }
-*/
+
 
 int main(){
 	int v1,v2,costo,beneficio,edges,edg1,edg2,ids;
@@ -365,6 +603,7 @@ int main(){
 	grafo.resize(edges+1);
 	grafoR.resize(edges+1);
 	grafoR2.resize(edges+1);
+	grafoAux.resize(edges+1);
 	grafoI.resize(edges+1);
 	floyd.resize(edges+1);
 	next.resize(edges+1);
@@ -375,6 +614,7 @@ int main(){
 		grafo[i].resize(edges+1);
 		grafoR[i].resize(edges+1);
 		grafoR2[i].resize(edges+1);
+		grafoAux[i].resize(edges+1);
 		grafoI[i].resize(edges+1);
 		floyd[i].resize(edges+1);
 		next[i].resize(edges+1);
@@ -385,6 +625,7 @@ int main(){
 		for(int j = 0;j <= edges; j++){
 			grafo[i][j] = mp(-1,-1);
 			grafoR[i][j] = mp(-1,-1);
+			grafoAux[i][j] = mp(-1,-1);
 			grafoI[i][j] = -1;
 		}
 	}
@@ -466,19 +707,50 @@ int main(){
 	*/
 	//Probando las componentes conexas de R
 	vector<int> recons;
+	vector<int> recnst;
 	ids = comp_con(grafoR,cc,edges);
+	if(cc[1] == -1){
+		cc[1]++;
+		for(int i = 2; i < cc.size(); i++){
+			if(cc[i] != -1){
+				cc[i]++;
+			}
+		}
+		ids++;
+	}
 	floyd_warshall(floyd,next,edges);
+	//printf("Floyd\n");
 	if(ids != 1){
 		grafoCc.resize(ids);
 		llenar_componentes(grafoCc,cc);
 		llenar_lados(floyd,grafoCc,lados);
+		//printf("Kruskal\n");
 		lados = kruskal(lados,cc,ids);
+		//printf("Despues\n");
 		for(int i = 0; i < lados.size(); i++){
-			grafoR[lados[i].ss.ff][lados[i].ss.ss] = grafo[lados[i].ss.ff][lados[i].ss.ss];
-			grafoR[lados[i].ss.ss][lados[i].ss.ff] = grafo[lados[i].ss.ss][lados[i].ss.ff];
-			grafoR2[lados[i].ss.ff][lados[i].ss.ss].push_back(grafo[lados[i].ss.ff][lados[i].ss.ss]);
-			grafoR2[lados[i].ss.ss][lados[i].ss.ff].push_back(grafo[lados[i].ss.ss][lados[i].ss.ff]);
+			//printf("Recsn\n");
+			recnst.clear();
+			recnst = reconstruir(next,lados[i].ss.ff,lados[i].ss.ss);
+			for(int j = 0; j < recnst.size()-1; j++){
+				//if(grafoR[recnst[j]][recnst[j+1]].ff == -1){
+					//printf("Dentro\n");
+					grafoAux[recnst[j]][recnst[j+1]] = mp(floyd[recnst[j]][recnst[j+1]],-1);
+					grafoAux[recnst[j+1]][recnst[j]] = mp(floyd[recnst[j+1]][recnst[j]],-1);
+				//}
+			}
 		}
+		//printf("Salio\n");
+		for(int i = 0; i < grafoAux.size(); i++){
+			for(int j = 0; j < grafoAux[i].size(); j++){
+				if(grafoAux[i][j].ff !=-1){
+					//printf("%d %d\n",i,j);
+					grafoR2[i][j].push_back(grafoAux[i][j]);
+					//grafoR2[j][i].push_back(grafoAux[j][i]);
+				}
+				//printf("%d %d\n", i,j);
+			}
+		}
+		//printf("LALA\n");
 	}
 	if(!es_par(grafoR2)){
 		gen_grafo_impar(grafoR2,grafoI,floyd);
@@ -491,33 +763,66 @@ int main(){
 			//grafoR2[lados[i].ss.ss][lados[i].ss.ff].push_back(mp(lados[i].ff,-1));
 			recons = reconstruir(next,lados[i].ss.ff,lados[i].ss.ss);
 			for(int j = 0; j < recons.size()-1; j++){
-				grafoR2[recons[j]][recons[j+1]].push_back(mp(floyd[j][j+1],-1));
-				grafoR2[recons[j+1]][recons[j]].push_back(mp(floyd[j+1][j],-1));
+				grafoR2[recons[j]][recons[j+1]].push_back(mp(floyd[recons[j]][recons[j+1]],-1));
+				grafoR2[recons[j+1]][recons[j]].push_back(mp(floyd[recons[j+1]][recons[j]],-1));
 			}
 		}
 	}
-	ciclo = eulerian_path(grafoR);
+	printf("Es par: %d\n",es_par(grafoR2));
+	ciclo = eulerian_path(grafoR2);
 	vector<int> ciclo_aux; 
 	ciclo_aux.push_back(ciclo[0]);
 	for(int i = 0; i < ciclo.size()-1; i++){
 		if (grafo[ciclo[i]][ciclo[i+1]].ff != floyd[ciclo[i]][ciclo[i+1]]) {
+			//printf("%d %d\n", ciclo[i],ciclo[i+1]);
 			camino = reconstruir(next, ciclo[i], ciclo[i+1]);
-			for (int j = 0; j < camino.size(); j++) {
+			for (int j = 1; j < camino.size(); j++) {
 				ciclo_aux.push_back(camino[j]);
-				printf("%d\n",camino[j]);
+				//printf("se agrega %d en la posicion %d \n",camino[j],(int)ciclo_aux.size());
 			}
 		}
 		else {
 			ciclo_aux.push_back(ciclo[i+1]);
 		}
 	}
-	printf("Es par: %d\n",es_par(grafoR2));
-	int resultado = calcular_beneficio(ciclo_aux, grafo);
-	printf("%d\n", resultado);
-	for(int i = 0; i < ciclo_aux.size(); i++){
-		printf("%d ",ciclo_aux[i]);
+	elim_euleriana(ciclo_aux, grafo);
+
+	vector<int> ciclo_aux2; 
+	ciclo_aux2.push_back(ciclo_aux[0]);
+	for(int i = 0; i < ciclo_aux.size()-1; i++){
+		if (grafo[ciclo_aux[i]][ciclo_aux[i+1]].ff != floyd[ciclo_aux[i]][ciclo_aux[i+1]]) {
+			//printf("%d %d\n", ciclo[i],ciclo[i+1]);
+			camino = reconstruir(next, ciclo_aux[i], ciclo_aux[i+1]);
+			for (int j = 1; j < camino.size(); j++) {
+				ciclo_aux2.push_back(camino[j]);
+				//printf("se agrega %d en la posicion %d \n",camino[j],(int)ciclo_aux.size());
+			}
+		}
+		else {
+			ciclo_aux2.push_back(ciclo_aux[i+1]);
+		}
+	}
+
+	int resultado = calcular_beneficio(ciclo_aux2, grafo);
+	printf("\n");
+	printf("El resultado es: %d\n", resultado);
+	for(int i = 0; i < ciclo_aux2.size(); i++){
+		printf("%d ",ciclo_aux2[i]);
 	}
 	printf("\n");
+
+
+	int fact = 1;
+
+	for(int i = 0; i < ciclo_aux2.size()-1; i++){
+		if(grafo[ciclo_aux2[i]][ciclo_aux2[i+1]].ff == -1){
+			printf("%d %d\n",ciclo_aux2[i],ciclo_aux2[i+1]);
+			fact = 0;
+			break;
+		}
+	}
+	printf("Factible: %d\n",fact);
+
 	//printf("Son %d\n",ids);
 
 
