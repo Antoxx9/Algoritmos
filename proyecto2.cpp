@@ -1,12 +1,16 @@
 #include <vector>
 #include <cstdio>
+#include <stdlib.h>
 #include <string.h>
+#include <fstream>
+#include <vector>
 #include <algorithm>
 #include <functional>
 #include <utility>
 #include <queue>
 #include <map>
 #include <iostream>
+#include <time.h>
 
 #define ss second
 #define ff first
@@ -542,7 +546,8 @@ vector<int> eliminacion_ciclo_negativo(vector<int> ciclo, vector< vector< pair<i
 }
 
 // Programa principal
-int main(){
+int main(int argc, const char **argv){
+	clock_t tStart = clock();
 	vector< pair< int,pair<int,int> > > lados; // Estructura para representar los lados de un grafo.
 	vector< vector< pair<int,int> > > grafo;   // Grafo original, construido durante la lectura.
 	vector< vector< pair<int,int> > > grafoR;  // Grafo que representa los lados R U Q.
@@ -559,10 +564,22 @@ int main(){
 	vector<int> ciclo_elim; // Arreglo para representar el ciclo obtenido luego de la mejora.
 	int v1,v2,costo,beneficio,edges,edg1,edg2,ids;
 	pair<int,int> aux,aux1,aux2;
+	ofstream o_file;
+	ifstream file;
 
-	scanf("number of vertices :  %d \n",&edges);
-	scanf("number of required edges %d \n",&edg1);
-
+	string auxiliar,nombre;
+	file.open(argv[1]);
+	nombre = argv[1];
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> edges;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> edg1;
 	// Inicializacion de las estructuras
 	grafo.resize(edges+1);
 	grafoR.resize(edges+1);
@@ -595,7 +612,7 @@ int main(){
 
 	// Comienzo de la lectura
 	while(edg1--){
-		scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio);
+		file >> v1 >> v2 >> costo >> beneficio;
 		aux = mp(v1,v2);
 		aux1 = mp(v2,v1);
 		aux2 = mp(costo,beneficio);
@@ -615,17 +632,22 @@ int main(){
 			grafoR2[v2][v1].push_back(aux2);
 		}
 	}
-
-	scanf("\nnumber of non required edges  %d \n",&edg2);
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> auxiliar;
+	file >> edg2;
+	
 	while(edg2--){
-		scanf("%d %d %d %d",&v1,&v2,&costo,&beneficio);
+		file >> v1 >> v2 >> costo >> beneficio;
 		aux = mp(v1,v2);
 		aux1 = mp(v2,v1);
 		aux2 = mp(costo,beneficio);
 		grafo[v1][v2] = aux2;
 		grafo[v2][v1] = aux2;
 	}
-	
+	file.close();
 	// Inicializacion delas matrices floyd y next las cuales
 	// requieren del grafo ya construido.
 	for(int i = 0; i <= edges; i++){
@@ -734,11 +756,19 @@ int main(){
 		resultado = resultado_elim;
 		ciclo_aux = ciclo_elim;
 	}
-	printf("%d\n", resultado);
+	o_file.open(nombre.append("-salida.txt").c_str());
+	o_file << resultado << endl;
 	for(int i = 0; i < ciclo_aux.size(); i++){
-		printf("%d ",ciclo_aux[i]);
+		if(ciclo_aux[i] == 1){
+			o_file << "d" << " ";
+		}
+		else{
+			o_file << ciclo_aux[i]-1 << " ";
+		}
 	}
-	printf("\n");
+	o_file << endl;
+	o_file.close();
+	//printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
 }
 		
 	
