@@ -9,7 +9,7 @@ else
 		echo "$dir" 	
 		for entry in `ls -v "$1/$dir"`
 		do
-			result=$(./sin_proy < "$1$dir/$entry")
+			result=$(./sin_proy "$1$dir/$entry")						
 			y=(${result//$'\n'/ })
 			echo ${y[0]} >> $dir"_Result"		 
 		done
@@ -17,4 +17,3 @@ else
 		echo " "
 	done
 fi
-
