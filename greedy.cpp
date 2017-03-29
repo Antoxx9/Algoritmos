@@ -20,6 +20,7 @@
 using namespace std;
 
 vector< vector< pair<int,int> > > grafo;   // Grafo original, construido durante la lectura.
+vector< vector< pair<int,int> > > grafo_aux;   // Grafo original, construido durante la lectura.
 
 class vertice {
 	public:
@@ -97,14 +98,15 @@ pair <vector<int>,int> camino_costo_min(int n_edges, int i, int b) {
 	return mp(camino, costo_cm);
 }
 
+
 //Aun no es probabilistico
 pair <int,int> obtener_lado(vector< pair<int,int> > T, int b) {
 	int max_benf = -1;
 	pair <int,int> lado = mp(-1,-1);
 	for (int i = 0; i < T.size(); i++) {
-		if (T[i].ff == b || T[i].ss == b) {
-			if ((grafo[T[i].ff][T[i].ff].ss - grafo[T[i].ff][T[i].ff].ff) > max_benf) {
-					max_benf = grafo[T[i].ff][T[i].ff].ss - grafo[T[i].ff][T[i].ff].ff;
+		if (T[i].ff == b || T[i].ss == b) { 
+			if ((grafo[T[i].ff][T[i].ss].ss - grafo[T[i].ff][T[i].ss].ff) > max_benf) {
+					max_benf = grafo[T[i].ff][T[i].ss].ss - grafo[T[i].ff][T[i].ss].ff;
 					lado = T[i];
 			}
 		}
@@ -114,6 +116,46 @@ pair <int,int> obtener_lado(vector< pair<int,int> > T, int b) {
 	}
 	return lado;
 }
+/*
+pair <int,int> obtener_lado(vector< pair<int,int> > T, int b) {
+	pair <int,int> lado = mp(-1,-1);
+	vector<int> pesos; 
+	vector< pair<int,int> > listaLados; 
+	int pesoActual = 0;
+	for (int i = 0; i < T.size(); i++) {
+		if (T[i].ff == b || T[i].ss == b) {
+			listaLados.push_back(T[i]);
+			pesos.push_back(pesoActual);
+			pesoActual += 1 + grafo[T[i].ff][T[i].ff].ss - grafo[T[i].ff][T[i].ff].ff;
+		}
+	}
+
+
+	if (lado.ss == b) {
+		lado = mp(lado.ss,lado.ff);
+	}
+	return lado;
+}
+
+int obtenerLado(vector< vector<int>  > grafo,int vertice){
+	vector<int> listaLados = grafo[vertice];
+	vector<int> pesos;
+	int pesoActual = 0;
+	for (int i = 0 ; i < (int)listaLados.size(); i++){
+		pesos.push_back(pesoActual);
+		pesoActual += 1 + beneficio[vertice][listaLados[i]] - costo[vertice][listaLados[i]]);
+	}
+	int randomNumber = rand() % pesoActual+1;
+
+	for (int i = 1 ; i < (int)pesos.size();i++){
+
+		if (randomNumber < pesos[i]){
+			return listaLados[i-1];
+		}
+	}
+	return listaLados[listaLados.size()-1];
+}
+*/
 
 //Aun no es probabilistico
 vector<int> obtener_camino(vector<pair <vector<int>,int> > caminos_cm) {
@@ -138,13 +180,22 @@ vector<int> obtener_camino(vector<pair <vector<int>,int> > caminos_cm) {
 	return min_camino;
 }
 
+void elim_ciclos_negativos(vector< pair<int,int> > ciclo){
+	vector< pair<int,int> > ciclo_aux;
+	for (int i = 0; i < ciclo.size() - 1; i++) {
+		ciclo_aux.clear();
+		for (int j = i + 1; j < ciclo.size(); j++) {
+			ciclo_aux.push_back(ciclo[j]);
+			if (ciclo[i].ss == ciclo[j].ss) {
+				cout << "Ciclo negativo detectado." << endl;
+			}
+		}
+	} 
+}
+
 // Programa principal
 int main (int argc, const char **argv){
 	clock_t tStart = clock();
-	vector< pair< int,pair<int,int> > > lados; // Estructura para representar los lados de un grafo.
-	vector< vector< int > > floyd;  // Matriz para realizar floyd warshall.
-	vector< vector< int > > next;	// Matriz para almacenar los caminos encontrados por floyd warshall.
-	vector<int> camino, recons; // Arreglo para representar un camino reconstruido.
 	vector< pair<int,int> > ciclo;
 	vector< pair<int,int> > T;
 	pair<int,int> lado, lado_inv;
@@ -163,13 +214,9 @@ int main (int argc, const char **argv){
 
 	// Inicializacion de las estructuras
 	grafo.resize(n_edges + 1);
-	floyd.resize(n_edges + 1);
-	next.resize(n_edges + 1);
 	
 	for(int i = 0; i <= n_edges; i++){
 		grafo[i].resize(n_edges + 1);
-		floyd[i].resize(n_edges + 1);
-		next[i].resize(n_edges + 1);
 	}
 
 	for(int i = 0; i <= n_edges; i++){
@@ -196,16 +243,22 @@ int main (int argc, const char **argv){
 		grafo[v2][v1] = (grafo[v1][v2] = mp(costo,beneficio));
 	}
 	file.close();
-	
+
+	grafo_aux = grafo;
 	// Impresion de revision
-	/*
 	for(int i = 1; i <= n_edges; i++){
 		for(int j = 1;j <= n_edges; j++){
 			cout << "(" << grafo[i][j].ff << "," << grafo[i][j].ss << ") ";
 		}
 		cout << endl;
 	}
-	*/
+	cout << endl;
+	for(int i = 1; i <= n_edges; i++){
+		for(int j = 1;j <= n_edges; j++){
+			cout << "(" << grafo_aux[i][j].ff << "," << grafo_aux[i][j].ss << ") ";
+		}
+		cout << endl;
+	}
 	/*
 	cout << "Lados R U Q: ";
 	for(int i = 0; i < T.size(); i++) {
@@ -306,4 +359,5 @@ int main (int argc, const char **argv){
 		cout << "(" << ciclo[i].ff << "," << ciclo[i].ss << ") ";
 	}
 	cout << endl;
+	elim_ciclos_negativos(ciclo);
 }
